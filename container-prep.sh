@@ -74,11 +74,14 @@ DB_Pass ${CACTI}
 DB_Port 3306
 EOF
 
-echo "INSERT INTO cacti.settings VALUES ("path_spine","/usr/local/spine/bin/spine.conf");" | mysql -uroot -p${MYSQL}
-echo "INSERT INTO cacti.settings VALUES ("path_spine_config","/usr/local/spine/bin/spine.conf");" | mysql -uroot -p${MYSQL}
-echo "UPDATE cacti.settings SET value = "2" WHERE name = "poller_type";" | mysql -uroot -p${MYSQL}
+# These don't work, but I'm keeping them here as a reminder to figure out a way to make them work.
+#echo "INSERT INTO cacti.settings VALUES ("path_spine","/usr/local/spine/bin/spine.conf");" | mysql -uroot -p${MYSQL}
+#echo "INSERT INTO cacti.settings VALUES ("path_spine_config","/usr/local/spine/bin/spine.conf");" | mysql -uroot -p${MYSQL}
+#echo "UPDATE cacti.settings SET value = "2" WHERE settings.name = 'poller_type';" | mysql -uroot -p${MYSQL}
 
 sed -i "s/database_hostname = 'localhost'/database_hostname = '${DBHOST}'/" /usr/share/webapps/cacti/include/config.php
 sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/webapps/cacti/include/config.php
+
+echo "alias ll='ls -l'" >> /etc/profile
 
 /init-services.sh
