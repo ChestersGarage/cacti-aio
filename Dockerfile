@@ -1,8 +1,12 @@
 FROM alpine:latest
 
+# Install all the things we need to do everything.
 RUN /sbin/apk --no-cache upgrade && \
 	/sbin/apk --no-cache add apache2 mariadb mariadb-client php7 cacti cacti-php7 vim php7-apache2 net-snmp curl tzdata openrc cacti-setup wget patch gd php7-dom automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
 
+# Move all the default configs into a backup location,
+# from where they will be restored later in the container startup process
+# Also sets up a few locations, resources and permisions
 RUN BACKUPDIR="/root/default-configs" && \
 	/bin/mkdir -p ${BACKUPDIR}/mysql && \
 	/bin/mv /etc/mysql/my.cnf ${BACKUPDIR}/mysql/ && \
@@ -24,6 +28,7 @@ RUN BACKUPDIR="/root/default-configs" && \
 	chown -R apache:apache /usr/share/webapps/cacti/scripts/ && \
 	chown -R apache:apache /var/log/cacti
 
+# Download and install spine.
 RUN cd /var/lib/spine/src && \
 	/usr/bin/wget http://www.cacti.net/downloads/spine/cacti-spine-latest.tar.gz && \
 	ver=$(tar -tf cacti-spine-latest.tar.gz | head -n1 | tr -d /) && \
@@ -42,31 +47,15 @@ RUN cd /var/lib/spine/src && \
 	/bin/chown root:root /usr/local/spine/bin/spine && \
 	/bin/chmod +s /usr/local/spine/bin/spine
 
+# Get rid of the tools used to build spine. We don't need them any longer.
+RUN /sbin/apk --no-cache del automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
+
+# Apply a bug fix caused by PHP 7.2
 RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/utility.php && \
 	sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php
 
-RUN DBHOST=$(hostname) && \
-/bin/cat > /usr/local/spine/bin/spine.conf <<EOF
-DB_Host         ${DBHOST}
-DB_Database     cacti
-DB_User         cactiuser
-DB_Password     cactiuser
-DB_Port         3306
-EOF
-	
-RUN cat > /root/default-configs/mysql/my.cnf <<EOF
-[mysqld]
-collation_server = utf8mb4_unicode_ci
-character_set_server = utf8mb4
-max_heap_table_size = 1024M
-max_allowed_packet = 16M
-tmp_table_size = 128M
-join_buffer_size = 128M
-innodb_buffer_pool_size = 4096M
-innodb_doublewrite = OFF
-innodb_flush_log_at_timeout = 10
-innodb_read_io_threads = 32
-innodb_write_io_threads = 16
-EOF
+# Add our stuff
+COPY container-prep.sh /
+COPY init-services.sh /
 
-
+ENTRYPOINT ["/bin/sh", "-c", "/container-startup.sh"]

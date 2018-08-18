@@ -4,38 +4,75 @@
 # copy in any that are missing or unrecognized
 BACKUPDIR="/root/default-configs"
 
+# Look for the main httpd.conf because 
+# if it's missing, the rest doesn't matter
 if [[ ! -f /etc/apache2/httpd.conf ]]
 then
 	SERVERFQDN=$(hostname)
-	echo "ServerName ${SERVERFQDN}" | tee /root/default-configs/apache/conf.d/fqdn.conf
+	echo "ServerName ${SERVERFQDN}" > /root/default-configs/apache/conf.d/fqdn.conf
 	cp -rpf ${BACKUPDIR}/apache/* /etc/apache2/
 fi
 
+# Same for PHP as Apache above.
+# Just look for the key config file.
 if [[ ! -f /etc/php7/php.ini ]]
 then
 	sed -i "s|\;date.timezone =|date.timezone = \"${TZ}\"|" /root/default-configs/php7/php.ini
 	cp -rpf ${BACKUPDIR}/php7/* /etc/php7/
 fi
 
+# MySQL only has one config file
 if [[ ! -f /etc/mysql/my.cnf ]]
 then
-	cp -pf ${BACKUPDIR}/mysql/my.cnf /etc/mysql/my.cnf
+	cat > /etc/mysql/my.cnf <<EOF
+[mysqld]
+collation_server = utf8mb4_unicode_ci
+character_set_server = utf8mb4
+max_heap_table_size = 1024M
+max_allowed_packet = 16M
+tmp_table_size = 128M
+join_buffer_size = 128M
+innodb_buffer_pool_size = 4096M
+innodb_doublewrite = OFF
+innodb_flush_log_at_timeout = 10
+innodb_read_io_threads = 32
+innodb_write_io_threads = 16
+EOF
 fi
 
+# Checking for the presence of a cacti data base folder in the mysql data
+# Again, no cacti means this is a fresh installation
+# and initialize MySQL/MariaDB
+DBHOST=$(hostname)
 if [[ ! -d /var/lib/mysql/cacti ]]
 then
 	/etc/init.d/mariadb setup
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 	sleep 3
-	mysqladmin -u root password ${MYPW}
-	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p${MYPW} mysql
+	mysqladmin -u root password ${MYSQL}
+	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p${MYSQL} mysql
 	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
-	mysqladmin -u root -p${MYPW} reload
-	mysqladmin -u root -p${MYPW} create cacti
-	echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY 'cactiuser'; flush privileges; " | mysql -u root -p${MYPW}
-	echo "GRANT ALL ON cacti.* TO cactiuser@${DBHOST} IDENTIFIED BY 'cactiuser'; flush privileges; " | mysql -u root -p${MYPW}
-	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY 'cactiuser'; flush privileges; " | mysql -u root -p${MYPW}
-	mysql -u root -p${MYPW} cacti < /usr/share/webapps/cacti/cacti.sql
-	mysqladmin -u root -p${MYPW} shutdown
+	mysqladmin -u root -p${MYSQL} reload
+	mysqladmin -u root -p${MYSQL} create cacti
+	echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY \'${CACTI}\'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT ALL ON cacti.* TO cactiuser@${DBHOST} IDENTIFIED BY \'${CACTI}\'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY \'${CACTI}\'; flush privileges; " | mysql -u root -p${MYSQL}
+	mysql -u root -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
+	mysqladmin -u root -p${MYSQL} shutdown
+else
+	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
+	sleep 3
+	echo "GRANT ALL ON cacti.* TO cactiuser@${DBHOST} IDENTIFIED BY \'${CACTI}\'; flush privileges; " | mysql -u root -p${MYSQL}
+	mysqladmin -u root -p${MYSQL} shutdown
 fi
 
+# Set the spine.conf with current info
+cat > /usr/local/spine/bin/spine.conf <<EOF
+DB_Host         ${DBHOST}
+DB_Database     cacti
+DB_User         cactiuser
+DB_Password     ${CACTI}
+DB_Port         3306
+EOF
+
+/init-services.sh
