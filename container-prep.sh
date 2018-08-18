@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 # Check for existing configs, and
 # copy in any that are missing or unrecognized
@@ -54,25 +54,31 @@ then
 	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
 	mysqladmin -u root -p${MYSQL} reload
 	mysqladmin -u root -p${MYSQL} create cacti
-	echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY \'${CACTI}\'; flush privileges; " | mysql -u root -p${MYSQL}
-	echo "GRANT ALL ON cacti.* TO cactiuser@${DBHOST} IDENTIFIED BY \'${CACTI}\'; flush privileges; " | mysql -u root -p${MYSQL}
-	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY \'${CACTI}\'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT ALL ON cacti.* TO cactiuser@${DBHOST} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${DBHOST} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
 	mysql -u root -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
 	mysqladmin -u root -p${MYSQL} shutdown
 else
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 	sleep 3
-	echo "GRANT ALL ON cacti.* TO cactiuser@${DBHOST} IDENTIFIED BY \'${CACTI}\'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT ALL ON cacti.* TO cactiuser@${DBHOST} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
 	mysqladmin -u root -p${MYSQL} shutdown
 fi
 
 # Set the spine.conf with current info
 cat > /usr/local/spine/bin/spine.conf <<EOF
-DB_Host         ${DBHOST}
-DB_Database     cacti
-DB_User         cactiuser
-DB_Password     ${CACTI}
-DB_Port         3306
+DB_Host ${DBHOST}
+DB_Database cacti
+DB_User cactiuser
+DB_Pass ${CACTI}
+DB_Port 3306
 EOF
+
+echo "INSERT INTO cacti.settings VALUES ("path_spine","/usr/local/spine/bin/spine.conf");" | mysql -uroot -p${MYSQL}
+echo "INSERT INTO cacti.settings VALUES ("path_spine_config","/usr/local/spine/bin/spine.conf");" | mysql -uroot -p${MYSQL}
+echo "UPDATE cacti.settings SET value = "2" WHERE name = "poller_type";" | mysql -uroot -p${MYSQL}
+
+sed -i "s/database_hostname = 'localhost'/database_hostname = '${DBHOST}'/" /usr/share/webapps/cacti/include/config.php
+sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/webapps/cacti/include/config.php
 
 /init-services.sh

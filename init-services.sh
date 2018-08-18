@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 sleep 3

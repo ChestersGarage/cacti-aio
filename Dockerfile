@@ -48,14 +48,14 @@ RUN cd /var/lib/spine/src && \
 	/bin/chmod +s /usr/local/spine/bin/spine
 
 # Get rid of the tools used to build spine. We don't need them any longer.
-RUN /sbin/apk --no-cache del automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
+#RUN /sbin/apk --no-cache del automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
 
 # Apply a bug fix caused by PHP 7.2
 RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/utility.php && \
 	sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php
 
 # Add our stuff
-COPY container-prep.sh /
-COPY init-services.sh /
+ADD container-prep.sh /
+ADD init-services.sh /
 
-ENTRYPOINT ["/bin/sh", "-c", "/container-startup.sh"]
+ENTRYPOINT ["/bin/sh", "-c", "/container-prep.sh"]
