@@ -55,6 +55,13 @@ then
 	tar -zxf /tmp/php-conf.tgz -C /etc/php7/
 fi
 
+chown -R cacti:cacti /usr/share/webapps/cacti/
+chown -R cacti:cacti /var/lib/cacti/
+chown -R apache:apache /usr/share/webapps/cacti/cache/
+chown -R apache:apache /usr/share/webapps/cacti/resource/
+chown -R apache:apache /usr/share/webapps/cacti/scripts/
+chown -R apache:apache /var/log/cacti/
+
 # Reload/restart to make sure things are clean
 mysqladmin -uroot -p${MYSQL} reload
 /usr/sbin/httpd -k restart -f /etc/apache2/httpd.conf
