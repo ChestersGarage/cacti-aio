@@ -1,37 +1,60 @@
-#!/bin/sh
+#!/bin/sh -x
 
+# Clean up first
+rm -f /tmp/mysql-data.sql /tmp/mysql-conf.tgz /tmp/cacti-data.tgz /tmp/apache-conf.tgz /tmp/php-conf.tgz
+
+# Check for whether a backup file was specified
 if [[ $1 ]]
 then
 	RESTOREFILE=$1
 	if [[ -f ${RESTOREFILE} ]]
 	then
 		# Unpack the dated backup
-		echo "Restoring ${RESTOREFILE}"
 		tar -zxf ${RESTOREFILE} -C /tmp
 	else
 		echo "Backup ${RESTOREFILE} could not be found."
 		echo "Please make sure it exists in /var/backups."
+		exit 1
 	fi
 else
 	# Unpack the latest backup
-	echo "Restoring the latest backup file."
-	tar -zxf /var/backups/cacti-backup-latest.tgz -C /tmp
+	tar -zxf /var/backups/cacti-backup-latest.tgz -C /tmp/
 fi
 
 # MySQL data
-mysql -uroot -p${MYSQL} < /tmp/mysql-data.sql
+if [[ -f /tmp/mysql-data.sql ]]
+then
+	mysql -uroot -p${MYSQL} < /tmp/mysql-data.sql
+fi
 
 # MySQL configs
-tar -zxf /tmp/mysql-conf.tgz -C /etc/mysql
+if [[ -f /tmp/mysql-conf.tgz ]]
+then
+	rm -rf /etc/mysql/*
+	tar -zxf /tmp/mysql-conf.tgz -C /etc/mysql/
+fi
 
 # Cacti data
-tar -zcf /tmp/cacti-data.tgz -C /var/lib/cacti/rra
+if [[ -f /tmp/cacti-data.tgz ]]
+then
+	rm -rf /var/lib/cacti/rra/*
+	tar -zcf /tmp/cacti-data.tgz -C /var/lib/cacti/rra/
+fi
 
 # Apache configs
-tar -zcf /tmp/apache-conf.tgz -C /etc/apache2
+if [[ -f /tmp/apache-conf.tgz ]]
+then
+	rm -rf /etc/apache2/*
+	tar -zcf /tmp/apache-conf.tgz -C /etc/apache2/
+fi
 
 # PHP configs
-tar -zcf /tmp/php-conf.tgz -C /etc/php7
+if [[ -f /tmp/php-conf.tgz ]]
+then
+	rm -rf /etc/php7/*
+	tar -zcf /tmp/php-conf.tgz -C /etc/php7/
+fi
 
+# Reload/restart to make sure things are clean
 mysqladmin -uroot -p${MYSQL} reload
 /usr/sbin/httpd -k restart -f /etc/apache2/httpd.conf
