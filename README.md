@@ -85,29 +85,30 @@ chestersgarage/cacti:latest
 
 ### Accessing cacti
 
-1. Browse to ...
+* The container takes a good 15-20 seconds to start up.
+* Browse to ...
 
 ```
 http://<your_docker_host>:1984/cacti
 ```
 
-2. Follow the installation wizard.
-3. Log in and set your admin password. Default: admin/admin
-4. Go into Console -> Configuration -> Settings -> Paths
-5. Set the Spine Config File Path
+* Follow the installation wizard.
+* Log in and set your admin password. Default: admin/admin
+* Go into Console -> Configuration -> Settings -> Paths
+* Set the Spine Config File Path
 
 ```
 /usr/local/spine/bin/spine.conf
 ```
 
-6. Save
-7. Click the Poller tab
-8. Change the Poller Type to spine
-9. Set the Maximum Threads per Process, if desired
-10. Save
-11. Go to Utilities -> System Utilities
-12. Run each of Rebuild Poller Cache, Rebuild Resource Cache, Rebuild SNMPAgent Cache
-13. Give it at least 10 minutes to start showing data.
+* Save
+* Click the Poller tab
+* Change the Poller Type to spine
+* Set the Maximum Threads per Process, if desired
+* Save
+* Go to Utilities -> System Utilities
+* Run each of Rebuild Poller Cache, Rebuild Resource Cache, Rebuild SNMPAgent Cache
+* Give it at least 10 minutes to start showing data.
 
 ### Getting a shell
 
