@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 
 # Set cacti database user's password
 # If you don't provide one, we'll set it for you by grabbing some random data (27 alpha-numeric chars of it)
@@ -9,19 +9,20 @@ echo "MySQL root pw - ${MYSQL}"
 # Check for existing configs, and
 # copy in any that are missing, mal-formed or unrecognized
 # IMPORTANT: If you provide broken configs, we may overwrite them with defaults.
-BACKUPDIR="/root/default-configs"
+export BACKUPDIR="/root/default-configs"
 
 # It's who we are
 # And that's used a lot later
-CONTAINERFQDN=$(hostname)
+export CONTAINERFQDN=$(hostname)
 
 # Look for the main httpd.conf because 
 # if it's missing, the rest doesn't matter
 if [[ ! -f /etc/apache2/httpd.conf ]]
 then
-	echo "ServerName ${CONTAINERFQDN}" > /root/default-configs/apache/conf.d/fqdn.conf
 	cp -rpf ${BACKUPDIR}/apache/* /etc/apache2/
 fi
+
+echo "ServerName ${CONTAINERFQDN}" > /etc/apache2/conf.d/fqdn.conf
 
 # Same for PHP as Apache above.
 # Just look for the key config file.
@@ -65,13 +66,13 @@ then
 	# Set the MySQL root password
 	mysqladmin -u root password ${MYSQL}
 	# Ingest timezone data from the O/S
-	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p${MYSQL} mysql
+	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
 	# Set the current timezone for MySQL 
 	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
 	# Refresh the running MySQL server
-	mysqladmin -u root -p${MYSQL} reload
+	mysqladmin -uroot -p${MYSQL} reload
 	# Create the cacti databse
-	mysqladmin -u root -p${MYSQL} create cacti
+	mysqladmin -uroot -p${MYSQL} create cacti
 	# Set up cacti application access to the database
 	# Every time the container starts, this gets set. You could end up with a lot if you don't use the same one each time.
 	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
@@ -87,8 +88,8 @@ else
 	# First, make sure authentication and access are cleaned up
 	nohup /usr/bin/mysqld_safe --skip-grant-tables &
 	sleep 3
-	echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'root';" | mysql -uroot -p${MYSQL}
 	echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'cacti';" | mysql -uroot -p${MYSQL}
+	echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'root';" | mysql -uroot -p${MYSQL}
 	echo "UPDATE mysql.user SET password=PASSWORD(\"${MYSQL}\") WHERE User='root'; flush privileges;" | mysql -uroot -p${MYSQL}
 	mysqladmin -uroot -p${MYSQL} shutdown
 	sleep 1
@@ -106,6 +107,7 @@ fi
 
 # Set the spine.conf with current info
 # The docs say to use DB_Password, but actually DB_Pass is correct.
+# https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
 cat > /usr/local/spine/bin/spine.conf <<EOF
 DB_Host ${CONTAINERFQDN}
 DB_Database cacti

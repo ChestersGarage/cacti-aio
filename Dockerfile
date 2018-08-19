@@ -5,7 +5,8 @@ RUN /sbin/apk --no-cache upgrade && \
 	/sbin/apk --no-cache add apache2 mariadb mariadb-client php7 cacti cacti-php7 vim php7-apache2 net-snmp curl tzdata openrc cacti-setup wget patch gd php7-dom automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
 
 # Move all the default configs into a backup location,
-# from where they will be restored later in the container startup process
+# from where they _might_ be restored later in the container startup process
+# Startup scripts check for existing resources and copy in defauts if none are found
 # Also sets up a few locations, resources and permisions
 RUN BACKUPDIR="/root/default-configs" && \
 	/bin/mkdir -p ${BACKUPDIR}/mysql && \
@@ -19,22 +20,30 @@ RUN BACKUPDIR="/root/default-configs" && \
 	/bin/mkdir -p /usr/share/webapps/cacti/log && \
 	/bin/touch /run/openrc/softlevel && \
 	/bin/touch /usr/share/webapps/cacti/log/cacti.log && \
-	/bin/mkdir -p /var/lib/spine/src && \
-	ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti && \
+	/bin/mkdir -p /var/lib/spine/src
+
+# Update Cacti
+# We start off with the in-distro version, in order to set up dependencies and stuff.
+# Then we download and install the latest version of cacti on top of that.
+RUN ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti && \
+	wget https://www.cacti.net/downloads/cacti-latest.tar.gz && \
+	CACTI_VERSION=$(tar -tf cacti-latest.tar.gz | head -n1 | tr -d /) && \
+	ln -s /usr/share/webapps/cacti /usr/share/webapps/${CACTI_VERSION} && \
+	tar -xvf cacti-latest.tar.gz -C /usr/share/webapps && \
 	chown -R cacti:cacti /usr/share/webapps/cacti/ && \
-	chown -R cacti:cacti /var/lib/cacti && \
+	chown -R cacti:cacti /var/lib/cacti/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/cache/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/resource/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/scripts/ && \
-	chown -R apache:apache /var/log/cacti
+	chown -R apache:apache /var/log/cacti/
 
 # Download and install spine.
 # https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
 RUN cd /var/lib/spine/src && \
 	/usr/bin/wget http://www.cacti.net/downloads/spine/cacti-spine-latest.tar.gz && \
-	ver=$(tar -tf cacti-spine-latest.tar.gz | head -n1 | tr -d /) && \
+	SPINE_VERSION=$(tar -tf cacti-spine-latest.tar.gz | head -n1 | tr -d /) && \
 	/bin/tar -zxvf cacti-spine-latest.tar.gz && \
-	cd /var/lib/spine/src/$ver/ && \
+	cd /var/lib/spine/src/${SPINE_VERSION}/ && \
 	/usr/bin/aclocal && \
 	/usr/bin/libtoolize --force && \
 	/usr/bin/autoheader && \
