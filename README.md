@@ -25,6 +25,7 @@ docker run -d --rm \
 chestersgarage/cacti:latest
 ```
 
+
 ### Lets break it down...
 
 We're going to run as a daemon and disappear when stopped.
@@ -33,17 +34,20 @@ We're going to run as a daemon and disappear when stopped.
 docker run -d --rm \
 ```
 
+
 Bridging the network means this service is bound to the IP address of the host computer, not on its own IP address.
 
 ```
 --net='bridge' \
 ```
 
+
 That bridged connection comes from port 80 in the container and is exposed at port 1984 on the host IP.
 
 ```
 -p 1984:80/tcp \
 ```
+
 
 These are all the various places we might need to keep or control the data and configurations outside of the container.
 
@@ -56,11 +60,13 @@ These are all the various places we might need to keep or control the data and c
 -v '/mnt/cache/appdata/cacti/php-conf':'/etc/php7':'rw' \
 ```
 
+
 Time zone! Set your time zone or suffer the frustration of you graphs' data being in weird places.
 
 ```
 -e TZ="America/Los_Angeles" \
 ```
+
 
 The controversial part!  Feed in your passwords here.
 
@@ -69,17 +75,20 @@ The controversial part!  Feed in your passwords here.
 -e CACTI='\<cacti user db password\>' \
 ```
 
+
 It's a cacti container, so I figured we could call it that.
 
 ```
 --name cacti \
 ```
 
+
 I built this container on alpine:latest, so every time it starts, it will come on line with the latest version of everything used to build the application. I'll start versioning the containers in future updates (before I call it usable by people other than me).
 
 ```
 chestersgarage/cacti:latest
 ```
+
 
 ## Interacting
 
@@ -92,6 +101,7 @@ chestersgarage/cacti:latest
 http://<your_docker_host>:1984/cacti
 ```
 
+
 * Follow the installation wizard.
 * Log in and set your admin password. Default: admin/admin
 * Go into Console -> Configuration -> Settings -> Paths
@@ -100,6 +110,7 @@ http://<your_docker_host>:1984/cacti
 ```
 /usr/local/spine/bin/spine.conf
 ```
+
 
 * Save
 * Click the Poller tab
