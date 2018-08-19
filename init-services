@@ -19,4 +19,4 @@ crond -L /var/log/cron
 /usr/sbin/httpd -k start -f /etc/apache2/httpd.conf
 
 # Hold open the session
-tail -f /var/log/cacti/cacti.log
+tail -f /var/log/* /var/log/*/*
