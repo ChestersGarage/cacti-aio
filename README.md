@@ -8,19 +8,19 @@ A containerized implementation of the well-known cacti network monitoring and gr
 
 This is how I run this cacti container.  It sets up all of the configuration and data folders in one place.  And it launches with the "--rm" option to remove the container when it's stopped.
 
-> docker run -d --rm \
-> --net='bridge' \
-> -p 1984:80/tcp \
-> -v '/mnt/cache/appdata/cacti/backups':'/var/backups':'rw' \
-> -v '/mnt/cache/appdata/cacti/mysql-data':'/var/lib/mysql':'rw' \
-> -v '/mnt/cache/appdata/cacti/mysql-conf':'/etc/mysql':'rw' \
-> -v '/mnt/cache/appdata/cacti/cacti-data':'/var/lib/cacti/rra':'rw' \
-> -v '/mnt/cache/appdata/cacti/apache-conf':'/etc/apache2':'rw' \
-> -v '/mnt/cache/appdata/cacti/php-conf':'/etc/php7':'rw' \
-> -e TZ="America/Los_Angeles" \
-> -e MYSQL='<mysql root password>' \
-> -e CACTI='<cacti user db password>' \
-> --name cacti \
+> docker run -d --rm \\
+> --net='bridge' \\
+> -p 1984:80/tcp \\
+> -v '/mnt/cache/appdata/cacti/backups':'/var/backups':'rw' \\
+> -v '/mnt/cache/appdata/cacti/mysql-data':'/var/lib/mysql':'rw' \\
+> -v '/mnt/cache/appdata/cacti/mysql-conf':'/etc/mysql':'rw' \\
+> -v '/mnt/cache/appdata/cacti/cacti-data':'/var/lib/cacti/rra':'rw' \\
+> -v '/mnt/cache/appdata/cacti/apache-conf':'/etc/apache2':'rw' \\
+> -v '/mnt/cache/appdata/cacti/php-conf':'/etc/php7':'rw' \\
+> -e TZ="America/Los_Angeles" \\
+> -e MYSQL='\<mysql root password\>' \\
+> -e CACTI='\<cacti user db password\>' \\
+> --name cacti \\
 > chestersgarage/cacti:latest
 
 ### Lets break it down...
