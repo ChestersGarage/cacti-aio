@@ -62,7 +62,7 @@ Time zone! Set your time zone or suffer the frustration of you graphs' data bein
 -e TZ="America/Los_Angeles" \
 ```
 
-The controlversial part!  Feed in your passwords here.
+The controversial part!  Feed in your passwords here.
 
 ```
 -e MYSQL='\<mysql root password\>' \
