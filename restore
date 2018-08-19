@@ -1,0 +1,37 @@
+#!/bin/sh
+
+if [[ $1 ]]
+then
+	RESTOREFILE=$1
+	if [[ -f ${RESTOREFILE} ]]
+	then
+		# Unpack the dated backup
+		echo "Restoring ${RESTOREFILE}"
+		tar -zxf ${RESTOREFILE} -C /tmp
+	else
+		echo "Backup ${RESTOREFILE} could not be found."
+		echo "Please make sure it exists in /var/backups."
+	fi
+else
+	# Unpack the latest backup
+	echo "Restoring the latest backup file."
+	tar -zxf /var/backups/cacti-backup-latest.tgz -C /tmp
+fi
+
+# MySQL data
+mysql -uroot -p${MYSQL} < /tmp/mysql-data.sql
+
+# MySQL configs
+tar -zxf /tmp/mysql-conf.tgz -C /etc/mysql
+
+# Cacti data
+tar -zcf /tmp/cacti-data.tgz -C /var/lib/cacti/rra
+
+# Apache configs
+tar -zcf /tmp/apache-conf.tgz -C /etc/apache2
+
+# PHP configs
+tar -zcf /tmp/php-conf.tgz -C /etc/php7
+
+mysqladmin -uroot -p${MYSQL} reload
+/usr/sbin/httpd -k restart -f /etc/apache2/httpd.conf
