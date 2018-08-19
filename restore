@@ -38,21 +38,21 @@ fi
 if [[ -f /tmp/cacti-data.tgz ]]
 then
 	rm -rf /var/lib/cacti/rra/*
-	tar -zcf /tmp/cacti-data.tgz -C /var/lib/cacti/rra/
+	tar -zxf /tmp/cacti-data.tgz -C /var/lib/cacti/rra/
 fi
 
 # Apache configs
 if [[ -f /tmp/apache-conf.tgz ]]
 then
 	rm -rf /etc/apache2/*
-	tar -zcf /tmp/apache-conf.tgz -C /etc/apache2/
+	tar -zxf /tmp/apache-conf.tgz -C /etc/apache2/
 fi
 
 # PHP configs
 if [[ -f /tmp/php-conf.tgz ]]
 then
 	rm -rf /etc/php7/*
-	tar -zcf /tmp/php-conf.tgz -C /etc/php7/
+	tar -zxf /tmp/php-conf.tgz -C /etc/php7/
 fi
 
 # Reload/restart to make sure things are clean
