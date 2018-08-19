@@ -76,6 +76,8 @@ then
 	# Every time the container starts, this gets set. You could end up with a lot if you don't use the same one each time.
 	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
 	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
 	# Ingest the cacti initialization script
 	mysql -u root -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
 	# Must make sure MySQL isn't running before we transition to service startup.
@@ -87,6 +89,7 @@ else
 	# As mentioned above, use the same one, or you'll end up with a lot.
 	# Feel free to clean out old ones externally.
 	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
 	# Must make sure MySQL isn't running before we transition to service startup.
 	mysqladmin -u root -p${MYSQL} shutdown
 fi
@@ -120,6 +123,7 @@ echo "alias ll='ls -l'" >> /root/.bashrc
 # This gets reset to root:root for some reason, so I set it back.
 # Probably caused by host permissions. (to-do)
 chown -R cacti:cacti /var/lib/cacti/rra
+chown -R mysql:mysql /var/lib/mysql
 
 # Now start all the services.
 /init-services.sh

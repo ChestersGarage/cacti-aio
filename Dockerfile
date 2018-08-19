@@ -49,6 +49,7 @@ RUN cd /var/lib/spine/src && \
 	/bin/chmod +s /usr/local/spine/bin/spine
 
 # Get rid of the tools used to build spine. We don't need them any longer.
+# Apparently we do.
 #RUN /sbin/apk --no-cache del automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
 
 # Apply a bug fix caused by PHP 7.2
