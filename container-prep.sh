@@ -3,8 +3,8 @@
 # Set cacti database user's password
 # If you don't provide one, we'll set it for you by grabbing some random data (27 alpha-numeric chars of it)
 CACTI=${CACTI:-$(base64 /dev/urandom | tr -dc 'a-zA-Z-09' | fold -w 27 | head -n1)}
-echo "cactu db user pw - ${CACTI}"
-echo "mysql root pw - ${MYSQL}"
+echo "Cacti db user pw - ${CACTI}"
+echo "MySQL root pw - ${MYSQL}"
 
 # Check for existing configs, and
 # copy in any that are missing, mal-formed or unrecognized

@@ -29,6 +29,7 @@ RUN BACKUPDIR="/root/default-configs" && \
 	chown -R apache:apache /var/log/cacti
 
 # Download and install spine.
+# https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
 RUN cd /var/lib/spine/src && \
 	/usr/bin/wget http://www.cacti.net/downloads/spine/cacti-spine-latest.tar.gz && \
 	ver=$(tar -tf cacti-spine-latest.tar.gz | head -n1 | tr -d /) && \
