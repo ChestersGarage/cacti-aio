@@ -66,7 +66,9 @@ RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/ut
 	sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php
 
 # Add our stuff
-ADD container-prep.sh /
-ADD init-services.sh /
+ADD container-prep /
+ADD init-services /
+ADD backup /
+ADD restore /
 
-ENTRYPOINT ["/bin/sh", "-c", "/container-prep.sh"]
+ENTRYPOINT ["/bin/sh", "-c", "/container-prep"]
