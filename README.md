@@ -25,43 +25,43 @@ This is how I run this cacti container.  It sets up all of the configuration and
 
 ### Lets break it down...
 
-> docker run -d --rm \
+> docker run -d --rm \\
 
 We're going to run as a daemon and disappear when stopped.
 
-> --net='bridge' \
+> --net='bridge' \\
 
 Bridging the network means this service is bound to the IP address of the host computer, not on its own IP address.
 
-> -p 1984:80/tcp \
+> -p 1984:80/tcp \\
 
 That bridged connection comes from port 80 in the container and is exposed at port 1984 on the host IP.
 
-> -v '/mnt/cache/appdata/cacti/backups':'/var/backups':'rw' \
-> -v '/mnt/cache/appdata/cacti/mysql-data':'/var/lib/mysql':'rw' \
-> -v '/mnt/cache/appdata/cacti/mysql-conf':'/etc/mysql':'rw' \
-> -v '/mnt/cache/appdata/cacti/cacti-data':'/var/lib/cacti/rra':'rw' \
-> -v '/mnt/cache/appdata/cacti/apache-conf':'/etc/apache2':'rw' \
-> -v '/mnt/cache/appdata/cacti/php-conf':'/etc/php7':'rw' \
+> -v '/mnt/cache/appdata/cacti/backups':'/var/backups':'rw' \\
+> -v '/mnt/cache/appdata/cacti/mysql-data':'/var/lib/mysql':'rw' \\
+> -v '/mnt/cache/appdata/cacti/mysql-conf':'/etc/mysql':'rw' \\
+> -v '/mnt/cache/appdata/cacti/cacti-data':'/var/lib/cacti/rra':'rw' \\
+> -v '/mnt/cache/appdata/cacti/apache-conf':'/etc/apache2':'rw' \\
+> -v '/mnt/cache/appdata/cacti/php-conf':'/etc/php7':'rw' \\
 
 These are all the various places we might need to keep or control the data and configurations outside of the container.
 
-> -e TZ="America/Los_Angeles" \
+> -e TZ="America/Los_Angeles" \\
 
 Time zone! Set your time zone or suffer the frustration of you graphs' data being in weird places.
 
-> -e MYSQL='\<mysql root password\>' \
-> -e CACTI='\<cacti user db password\>' \
+> -e MYSQL='\<mysql root password\>' \\
+> -e CACTI='\<cacti user db password\>' \\
 
 The controlversial part!  Feed in your passwords here.
 
-> --name cacti \
+> --name cacti \\
 
 It's a cacti container, so I figured we could call it that.
 
 > chestersgarage/cacti:latest
 
-I built this container on alpine:latest, so every time it starts, it will come on line with the latest version of everything used to build the application.  
+I built this container on alpine:latest, so every time it starts, it will come on line with the latest version of everything used to build the application. I'll start versioning the containers in future updates (before I call it usable by people other than me).
 
 ### Interacting
 
@@ -72,11 +72,19 @@ I built this container on alpine:latest, so every time it starts, it will come o
 > http://<your_docker_host>:1984/cacti
 
 2. Follow the installation wizard.
-3. Verify the path for Spine is set to 
+3. Log in and set your admin password. Default: admin/admin
+4. Go into Console -> Configuration -> Settings -> Paths
+5. Set the Spine Config File Path
 
-> /usr/local/spine/bin/spine
+> /usr/local/spine/bin/spine.conf
 
-
+6. Save
+7. Click the Poller tab
+8. Change the Poller Type to spine
+9. Set the Maximum Threads per Process, if desired
+10. Save
+11. Go to Utilities -> System Utilities
+12. Run each of Rebuild Poller Cache, Rebuild Resource Cache, Rebuild SNMPAgent Cache
 
 #### Get a shell
 
