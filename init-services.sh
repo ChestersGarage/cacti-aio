@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh 
 
 # This is as bare-bones as you can get.
 # Individual service failures are not caught.
