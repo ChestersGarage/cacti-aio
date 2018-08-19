@@ -9,12 +9,14 @@ echo "mysql root pw - ${MYSQL}"
 # copy in any that are missing or unrecognized
 BACKUPDIR="/root/default-configs"
 
+# We add this to various configs
+CONTAINERFQDN=$(hostname)
+
 # Look for the main httpd.conf because 
 # if it's missing, the rest doesn't matter
 if [[ ! -f /etc/apache2/httpd.conf ]]
 then
-	SERVERFQDN=$(hostname)
-	echo "ServerName ${SERVERFQDN}" > /root/default-configs/apache/conf.d/fqdn.conf
+	echo "ServerName ${CONTAINERFQDN}" > /root/default-configs/apache/conf.d/fqdn.conf
 	cp -rpf ${BACKUPDIR}/apache/* /etc/apache2/
 fi
 
@@ -45,9 +47,10 @@ innodb_write_io_threads = 16
 EOF
 fi
 
-# Checking for the presence of a cacti data base folder in the mysql data
+# Checking for the presence of a cacti database folder in the mysql data
 # Again, no cacti means this is a fresh installation
-# and initialize MySQL/MariaDB
+# and initialize MySQL/MariaDB.
+# Everything else will be overwritten or ignored.
 DBHOST=$(hostname)
 if [[ ! -d /var/lib/mysql/cacti ]]
 then
@@ -71,6 +74,7 @@ else
 fi
 
 # Set the spine.conf with current info
+# The docs say to use DB_Password, but actually DB_Pass is correct.
 cat > /usr/local/spine/bin/spine.conf <<EOF
 DB_Host ${DBHOST}
 DB_Database cacti
@@ -81,13 +85,15 @@ EOF
 
 # These don't work, but I'm keeping them here as a reminder to figure out a way to make them work.
 # The problem is these are set prior to cacti's first-run process, which overwrites them.
+# I could force these in a cron job, but it would lock out recovery other than killing the container.
 #echo "INSERT INTO cacti.settings VALUES ("path_spine","/usr/local/spine/bin/spine");" | mysql -uroot -p${MYSQL}
 #echo "INSERT INTO cacti.settings VALUES ("path_spine_config","/usr/local/spine/bin/spine.conf");" | mysql -uroot -p${MYSQL}
 #echo "UPDATE cacti.settings SET value = "2" WHERE settings.name = 'poller_type';" | mysql -uroot -p${MYSQL}
 
+# Set the DB info cor cacti.
 sed -i "s/database_hostname = 'localhost'/database_hostname = '${DBHOST}'/" /usr/share/webapps/cacti/include/config.php
 sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/webapps/cacti/include/config.php
 
-echo "alias ll='ls -l'" >> /root/
+echo "alias ll='ls -l'" >> /root/.bashrc
 
 /init-services.sh
