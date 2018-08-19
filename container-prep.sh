@@ -1,15 +1,18 @@
 #!/bin/sh -x
 
-# Set MySQL root password
+# Set cacti database user's password
+# If you don't provide one, we'll set it for you by grabbing some random data (27 alpha-numeric chars of it)
 CACTI=${CACTI:-$(base64 /dev/urandom | tr -dc 'a-zA-Z-09' | fold -w 27 | head -n1)}
 echo "cactu db user pw - ${CACTI}"
 echo "mysql root pw - ${MYSQL}"
 
 # Check for existing configs, and
-# copy in any that are missing or unrecognized
+# copy in any that are missing, mal-formed or unrecognized
+# IMPORTANT: If you provide broken configs, we may overwrite them with defaults.
 BACKUPDIR="/root/default-configs"
 
-# We add this to various configs
+# It's who we are
+# And that's used a lot later
 CONTAINERFQDN=$(hostname)
 
 # Look for the main httpd.conf because 
@@ -51,32 +54,47 @@ fi
 # Again, no cacti means this is a fresh installation
 # and initialize MySQL/MariaDB.
 # Everything else will be overwritten or ignored.
-DBHOST=$(hostname)
 if [[ ! -d /var/lib/mysql/cacti ]]
 then
+	# Start from fresh
+	# Initialize the database
 	/etc/init.d/mariadb setup
+	# Start MySQL/MariaDB
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 	sleep 3
+	# Set the MySQL root password
 	mysqladmin -u root password ${MYSQL}
+	# Ingest timezone data from the O/S
 	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p${MYSQL} mysql
+	# Set the current timezone for MySQL 
 	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
+	# Refresh the running MySQL server
 	mysqladmin -u root -p${MYSQL} reload
+	# Create the cacti databse
 	mysqladmin -u root -p${MYSQL} create cacti
-	echo "GRANT ALL ON cacti.* TO cactiuser@${DBHOST} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
-	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${DBHOST} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	# Set up cacti application access to the database
+	# Every time the container starts, this gets set. You could end up with a lot if you don't use the same one each time.
+	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	# Ingest the cacti initialization script
 	mysql -u root -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
+	# Must make sure MySQL isn't running before we transition to service startup.
 	mysqladmin -u root -p${MYSQL} shutdown
 else
+	# Existing data to use and become.
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 	sleep 3
-	echo "GRANT ALL ON cacti.* TO cactiuser@${DBHOST} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	# As mentioned above, use the same one, or you'll end up with a lot.
+	# Feel free to clean out old ones externally.
+	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	# Must make sure MySQL isn't running before we transition to service startup.
 	mysqladmin -u root -p${MYSQL} shutdown
 fi
 
 # Set the spine.conf with current info
 # The docs say to use DB_Password, but actually DB_Pass is correct.
 cat > /usr/local/spine/bin/spine.conf <<EOF
-DB_Host ${DBHOST}
+DB_Host ${CONTAINERFQDN}
 DB_Database cacti
 DB_User cactiuser
 DB_Pass ${CACTI}
@@ -90,10 +108,18 @@ EOF
 #echo "INSERT INTO cacti.settings VALUES ("path_spine_config","/usr/local/spine/bin/spine.conf");" | mysql -uroot -p${MYSQL}
 #echo "UPDATE cacti.settings SET value = "2" WHERE settings.name = 'poller_type';" | mysql -uroot -p${MYSQL}
 
-# Set the DB info cor cacti.
-sed -i "s/database_hostname = 'localhost'/database_hostname = '${DBHOST}'/" /usr/share/webapps/cacti/include/config.php
+# Set the DB info for cacti.
+# Many characters can disrupt this.
+# Avoid & and ! and possibly others in passwords.
+sed -i "s/database_hostname = 'localhost'/database_hostname = '${CONTAINERFQDN}'/" /usr/share/webapps/cacti/include/config.php
 sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/webapps/cacti/include/config.php
 
+# I use ll all the time.
 echo "alias ll='ls -l'" >> /root/.bashrc
 
+# This gets reset to root:root for some reason, so I set it back.
+# Probably caused by host permissions. (to-do)
+chown -R cacti:cacti /var/lib/cacti/rra
+
+# Now start all the services.
 /init-services.sh

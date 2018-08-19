@@ -1,6 +1,9 @@
 #!/bin/sh -x
 
 # This is as bare-bones as you can get.
+# Individual service failures are not caught.
+# Terminate the container to recover from such issues.
+# User-provided configs can cause container failures. Make sure your configs are solid.
 # To do: make this robust, maybe with a supervisor.
 
 # Start MySQL/MariaDB
@@ -9,6 +12,7 @@ nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 sleep 3
 
 # Start cron
+# The cacti package installation left a cron file at: /etc/crontabs/cacti
 crond -L /var/log/cron
 
 # Start Apache
