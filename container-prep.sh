@@ -74,24 +74,34 @@ then
 	mysqladmin -u root -p${MYSQL} create cacti
 	# Set up cacti application access to the database
 	# Every time the container starts, this gets set. You could end up with a lot if you don't use the same one each time.
-	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
-	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
-	echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
-	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+	#echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY '${CACTI}';" | mysql -u root -p${MYSQL}
+	#echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges;" | mysql -u root -p${MYSQL}
 	# Ingest the cacti initialization script
-	mysql -u root -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
+	mysql -uroot -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
 	# Must make sure MySQL isn't running before we transition to service startup.
-	mysqladmin -u root -p${MYSQL} shutdown
+	mysqladmin -uroot -p${MYSQL} shutdown
 else
 	# Existing data to use and become.
-	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
+	# First, make sure authgentication and access are cleaned up
+	nohup /usr/bin/mysqld_safe --skip-grant-tables &
 	sleep 3
+	echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'root'; flush privileges;" | mysql -uroot
+	echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'cacti'; flush privileges;" | mysql -uroot
+	echo "UPDATE mysql.user SET password=PASSWORD(\"${MYSQL}\") WHERE User='root';" | mysql -uroot
+
+	#nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
+	#sleep 3
+
 	# As mentioned above, use the same one, or you'll end up with a lot.
 	# Feel free to clean out old ones externally.
-	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
-	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -uroot
+	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -uroot
+	#echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
+	#echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
 	# Must make sure MySQL isn't running before we transition to service startup.
-	mysqladmin -u root -p${MYSQL} shutdown
+	mysqladmin -uroot shutdown
 fi
 
 # Set the spine.conf with current info
