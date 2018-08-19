@@ -1,6 +1,6 @@
 # cacti
 
-A containerized implementation of the well-known cacti network monitoring and graphing system. This container aims to provide a highly tolerant and self-recovering instance of cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run cacti, including PHP, MySQL/MariaDB, Apache 2, and all dependent packages.
+A containerized implementation of the well-known cacti network monitoring and graphing system. This image aims to provide a highly tolerant and self-recovering instance of cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run cacti, including PHP, MySQL/MariaDB, Apache 2, and all dependent packages.
 
 ## Usage
 
