@@ -27,7 +27,7 @@ This is how I run this cacti container.  It sets up all of the configuration and
 
 > docker run -d --rm \
 
-We're going to run as a daemon and disappear wen stopped.
+We're going to run as a daemon and disappear when stopped.
 
 > --net='bridge' \
 
@@ -50,8 +50,8 @@ These are all the various places we might need to keep or control the data and c
 
 Time zone! Set your time zone or suffer the frustration of you graphs' data being in weird places.
 
-> -e MYSQL='<mysql root password>' \
-> -e CACTI='<cacti user db password>' \
+> -e MYSQL='\<mysql root password\>' \
+> -e CACTI='\<cacti user db password\>' \
 
 The controlversial part!  Feed in your passwords here.
 
@@ -67,9 +67,16 @@ I built this container on alpine:latest, so every time it starts, it will come o
 
 #### Accessing cacti
 
-Browse to ...
+1. Browse to ...
 
 > http://<your_docker_host>:1984/cacti
+
+2. Follow the installation wizard.
+3. Verify the path for Spine is set to 
+
+> /usr/local/spine/bin/spine
+
+
 
 #### Get a shell
 
