@@ -139,3 +139,10 @@ http://<your_docker_host>:1984/cacti
 docker exec -it cacti /bin/sh
 
 ```
+
+## To-Do
+
+* Provide for more secure injection or retrieval of passwords
+* Add LetsEncrypt SSL support
+* Try to verify the container supports distributed and large-scale implementations.
+* Settle on a data backup/recovery process and automate it.
