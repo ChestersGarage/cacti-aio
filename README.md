@@ -182,3 +182,4 @@ tar -zxvf /var/backups/cacti-rrd-data.tgz
 * Add LetsEncrypt SSL support
 * Try to verify the container supports distributed and large-scale implementations.
 * Settle on a data backup/recovery process and automate it.
+* Make detection of existing configs move anything old/exiting to a separate folder before copying in the defaults.
