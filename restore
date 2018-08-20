@@ -10,7 +10,7 @@ then
 	if [[ -f ${RESTOREFILE} ]]
 	then
 		# Unpack the dated backup
-		tar -zxf ${RESTOREFILE} -C /tmp
+		tar -zxvf ${RESTOREFILE} -C /tmp
 	else
 		echo "Backup ${RESTOREFILE} could not be found."
 		echo "Please make sure it exists in /var/backups."
@@ -18,7 +18,7 @@ then
 	fi
 else
 	# Unpack the latest backup
-	tar -zxf /var/backups/cacti-backup-latest.tgz -C /tmp/
+	tar -zxvf /var/backups/cacti-backup-latest.tgz -C /tmp/
 fi
 
 # MySQL data
@@ -31,28 +31,28 @@ fi
 if [[ -f /tmp/mysql-conf.tgz ]]
 then
 	rm -rf /etc/mysql/*
-	tar -zxf /tmp/mysql-conf.tgz -C /etc/mysql/
+	tar -zxvf /tmp/mysql-conf.tgz -C /etc/mysql/
 fi
 
 # Cacti data
 if [[ -f /tmp/cacti-data.tgz ]]
 then
 	rm -rf /var/lib/cacti/rra/*
-	tar -zxf /tmp/cacti-data.tgz -C /var/lib/cacti/rra/
+	tar -zxvf /tmp/cacti-data.tgz -C /var/lib/cacti/rra/
 fi
 
 # Apache configs
 if [[ -f /tmp/apache-conf.tgz ]]
 then
 	rm -rf /etc/apache2/*
-	tar -zxf /tmp/apache-conf.tgz -C /etc/apache2/
+	tar -zxvf /tmp/apache-conf.tgz -C /etc/apache2/
 fi
 
 # PHP configs
 if [[ -f /tmp/php-conf.tgz ]]
 then
 	rm -rf /etc/php7/*
-	tar -zxf /tmp/php-conf.tgz -C /etc/php7/
+	tar -zxvf /tmp/php-conf.tgz -C /etc/php7/
 fi
 
 chown -R cacti:cacti /usr/share/webapps/cacti/

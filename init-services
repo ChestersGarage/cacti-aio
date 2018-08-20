@@ -19,4 +19,4 @@ crond -L /var/log/cron
 /usr/sbin/httpd -k start -f /etc/apache2/httpd.conf
 
 # Hold open the session
-tail -f /var/log/* /var/log/*/*
+tail -f /var/log/apache2/error.log /var/log/apache2/acccess.log /var/log/cron /var/log/cacti/cacti.log /var/lib/mysql/${CONTAINERFQDN}.err
