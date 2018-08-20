@@ -149,28 +149,34 @@ Do this between polling periods or disable polling to avoid the poller running w
 * On the source installation...
 * Open a console to the container, if applicable.
 * Dump out a backup of the necessary data.
+
 ```
 mysqldump -uroot -pmysql_root_password cacti > /var/backups/cacti-mysql-data.sql
 cd /path/to/cacti/rra/
 tar -zcvf /var/backups/cacti-rrd-data.tgz *
 
 ```
+
 * Copy the files from the source to the target installation.
 * On the target installation...
 * Start with a fresh container.
 * Run through the Cacti startup wizard.
 * Open a console to the container.
+
 ```
 docker exec -it cacti /bin/bash
 
 ```
+
 * Ingest the data from the source installation.
+
 ```
 mysql -uroot -p${MYSQL} < /var/backups/cacti-mysql-data.sql
 cd /path/to/cacti/rra/
 tar -zxvf /var/backups/cacti-rrd-data.tgz
 
 ```
+
 * Restart the target container, just to be sure everything starts up clean
 * Rebuild the Poller, Resource and SNMPAgent caches in order to get data. It takes a while for data to start populating again.  In my testing, it would miss at least a couple polls, sometimes three or four, before it starts logging data again.
 * Voila!
