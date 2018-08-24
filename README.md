@@ -1,6 +1,6 @@
 # Cacti
 
-An implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system. This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
+An implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
 ## Usage
 
@@ -156,3 +156,53 @@ http://<your_docker_host>:1984/cacti
 docker exec -it cacti /bin/sh
 
 ```
+
+## Migrating between Cacti instances
+
+If you want to migrate (or just copy for testing) from another Cacti installation, start the container fresh, then dump ONLY the cacti database from your old installation, and package up the cacti RRD files. Then stuff it all into the new container.  It is safe to run more than one Cacti container at a time, provided you specify non-conflicting settings in each container.
+
+Do this between polling periods or disable polling to avoid the poller running while you are in the process of migrating.
+
+* On the source installation...
+* Open a console to the container, if applicable.
+* Dump out a backup of the necessary data.
+
+```
+mysqldump -uroot -pmysql_root_password cacti > /var/backups/cacti-mysql-data.sql
+cd /path/to/cacti/rra/
+tar -zcvf /var/backups/cacti-rrd-data.tgz *
+
+```
+
+* Copy the files from the source to the target installation.
+* On the target installation...
+* Start with a fresh container.
+* Run through the Cacti startup wizard.
+* Open a console to the container.
+
+```
+docker exec -it cacti /bin/bash
+
+```
+
+* Ingest the data from the source installation.
+
+```
+mysql -uroot -p${MYSQL} < /var/backups/cacti-mysql-data.sql
+cd /path/to/cacti/rra/
+tar -zxvf /var/backups/cacti-rrd-data.tgz
+
+```
+
+* Restart the target container, just to be sure everything starts up clean
+* Rebuild the Poller, Resource and SNMPAgent caches in order to get data. It takes a while for data to start populating again.  In my testing, it would miss at least a couple polls, sometimes three or four, before it starts logging data again.
+* Voila!
+
+## To-Do
+
+* Integrate with unRAID Docker implementation
+* Provide for more secure injection or retrieval of passwords
+* Add LetsEncrypt SSL support
+* Try to verify the container supports distributed and large-scale implementations.
+* Settle on a data backup/recovery process and automate it.
+* Make detection of existing configs move anything old/exiting to a separate folder before copying in the defaults.
