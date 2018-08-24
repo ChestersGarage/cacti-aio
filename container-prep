@@ -137,7 +137,7 @@ chown -R mysql:mysql /var/lib/mysql
 
 # Set the default backup schedule, if not provided
 CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
-echo "${CRON_PATTERN} /backup" >> /var/spool/cron/crontabs/root
+echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 
 # Now start all the services.
 /init-services

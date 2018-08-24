@@ -66,7 +66,7 @@ These are all the various places we might need to keep or control the data and c
 ```
 
 
-Set your time zone or suffer the frustration of you graphs' data being in weird places.
+Set your time zone or suffer the frustration of your graphs' data being in weird places.
 See the "TZ" column here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 ```
@@ -78,8 +78,8 @@ See the "TZ" column here: https://en.wikipedia.org/wiki/List_of_tz_database_time
 The controversial part!  Feed in your passwords here. In a future version of this image, I will add other, more secure ways to feed in passwords.
 
 ```
--e MYSQL='\<mysql root password\>' \
--e CACTI='\<cacti user db password\>' \
+-e MYSQL='<mysql root password>' \
+-e CACTI='<cacti user db password>' \
 
 ```
 
@@ -87,7 +87,7 @@ The controversial part!  Feed in your passwords here. In a future version of thi
 It's a cacti container, so I figured we could call it that.
 
 ```
---name cacti \
+--name Cacti \
 
 ```
 
@@ -132,7 +132,7 @@ http://<your_docker_host>:1984/cacti
 
 * Follow the installation wizard.
 * Log in and set your admin password. Default: admin/admin
-* Naviaget to Console -> Configuration -> Settings -> Paths
+* Navigate to Console -> Configuration -> Settings -> Paths
 * Set the Spine Config File Path
 
 ```
@@ -153,7 +153,7 @@ http://<your_docker_host>:1984/cacti
 ### Getting a shell
 
 ```
-docker exec -it cacti /bin/sh
+docker exec -it cacti /bin/bash
 
 ```
 
@@ -165,7 +165,7 @@ Do this between polling periods or disable polling to avoid the poller running w
 
 * On the source installation...
 * Open a console to the container, if applicable.
-* Dump out a backup of the necessary data.
+* Dump out a backup of the necessary data:
 
 ```
 mysqldump -uroot -pmysql_root_password cacti > /var/backups/cacti-mysql-data.sql
@@ -178,14 +178,14 @@ tar -zcvf /var/backups/cacti-rrd-data.tgz *
 * On the target installation...
 * Start with a fresh container.
 * Run through the Cacti startup wizard.
-* Open a console to the container.
+* Open a console to the container:
 
 ```
 docker exec -it cacti /bin/bash
 
 ```
 
-* Ingest the data from the source installation.
+* Ingest the data from the source installation:
 
 ```
 mysql -uroot -p${MYSQL} < /var/backups/cacti-mysql-data.sql
@@ -194,7 +194,7 @@ tar -zxvf /var/backups/cacti-rrd-data.tgz
 
 ```
 
-* Restart the target container, just to be sure everything starts up clean
+* Restart the target container, just to be sure everything starts up clean.
 * Rebuild the Poller, Resource and SNMPAgent caches in order to get data. It takes a while for data to start populating again.  In my testing, it would miss at least a couple polls, sometimes three or four, before it starts logging data again.
 * Voila!
 
@@ -204,5 +204,4 @@ tar -zxvf /var/backups/cacti-rrd-data.tgz
 * Provide for more secure injection or retrieval of passwords
 * Add LetsEncrypt SSL support
 * Try to verify the container supports distributed and large-scale implementations.
-* Settle on a data backup/recovery process and automate it.
 * Make detection of existing configs move anything old/exiting to a separate folder before copying in the defaults.
