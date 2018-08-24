@@ -6,7 +6,7 @@ An implementation of the Cacti (https://www.cacti.net) network monitoring and gr
 
 ### My setup
 
-This is how I run this Cacti container.  It sets up all of the configuration and data folders in one place.  I'm runing this on my unRAID server, which keeps persistent data on the unRAID cache disk (/mnt/cache).  
+This is how I run this Cacti container.  It sets up all of the configuration and data folders in one place.  I'm running this on my unRAID server, which keeps persistent data on the unRAID cache disk (/mnt/cache).  
 
 ```
 docker run -d --rm \
