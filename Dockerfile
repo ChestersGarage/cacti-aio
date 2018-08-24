@@ -20,14 +20,14 @@ RUN BACKUPDIR="/root/default-configs" && \
 	/bin/mkdir -p /usr/share/webapps/cacti/log && \
 	/bin/touch /run/openrc/softlevel && \
 	/bin/touch /usr/share/webapps/cacti/log/cacti.log && \
-	/bin/mkdir -p /var/lib/spine/src
+	/bin/mkdir -p /var/lib/spine/src && \
+	ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti
 
 # Update Cacti
 # We start off with the in-distro version, in order to set up dependencies and stuff.
 # Then we download and install the latest version of cacti on top of that.
 # So if you want to update Cacti, just re-run the container from a fresh image.
-RUN ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti && \
-	wget https://www.cacti.net/downloads/cacti-latest.tar.gz && \
+RUN wget https://www.cacti.net/downloads/cacti-latest.tar.gz && \
 	CACTI_VERSION=$(tar -tf cacti-latest.tar.gz | head -n1 | tr -d /) && \
 	ln -s /usr/share/webapps/cacti /usr/share/webapps/${CACTI_VERSION} && \
 	tar -xvf cacti-latest.tar.gz -C /usr/share/webapps && \
