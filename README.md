@@ -53,7 +53,7 @@ The bridged network connection maps port 80 from the container and exposes it at
 ```
 
 
-These are all the various places we might need to keep or control the data and configurations outside of the container. You don't need to mount all these volumes in your implementation.  The image will install the default configurations anywhere you do not provide your own data.
+These are all the various places we might need to keep or control the data and configurations outside of the container. You don't need to mount all these volumes in your implementation. The image will install the default configurations anywhere you do not provide your own data. But only the volumes you create here will maintain persistent data. Make sure you at least mount /var/lib/mysql and /var/lib/cacti/rra.
 
 ```
 -v '/mnt/cache/appdata/Cacti/backups':'/var/backups':'rw' \
@@ -66,7 +66,7 @@ These are all the various places we might need to keep or control the data and c
 ```
 
 
-Set your time zone or suffer the frustration of your graphs' data being in weird places.
+Set your time zone or suffer the frustration of your graphs' data being in weird places, and backups starting at the wrong time.
 See the "TZ" column here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 ```
@@ -84,7 +84,7 @@ The controversial part!  Feed in your passwords here. In a future version of thi
 ```
 
 
-It's a cacti container, so I figured we could call it that.
+It's a Cacti container, so I figured we could call it that.
 
 ```
 --name Cacti \
