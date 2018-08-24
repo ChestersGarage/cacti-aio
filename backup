@@ -5,8 +5,6 @@ rm -f /tmp/mysql-conf.tgz /tmp/cacti-data.tgz /tmp/apache-conf.tgz /tmp/php-conf
 
 # Create a rolling 24-hour backup.
 DATESTAMP=$(date +%H-%M)
-# For a one week archive of hourly backups
-#DATESTAMP=$(date +%u-%H-%M)
 
 # MySQL data
 mysqldump -uroot -p${MYSQL} --all-databases --add-locks --single-transaction --flush-privileges --max_allowed_packet=1073741824 > /tmp/mysql-data.sql
@@ -28,7 +26,6 @@ cd /etc/php7
 tar -zcf /tmp/php-conf.tgz *
 
 # Bundle it all up, and link it to the latest.
-cd /tmp
-tar -zcf /var/backups/cacti-backup-${DATESTAMP}.tgz mysql-data.sql mysql-conf.tgz cacti-data.tgz apache-conf.tgz php-conf.tgz
+tar -zcf /var/backups/cacti-backup-${DATESTAMP}.tgz -C /tmp mysql-data.sql mysql-conf.tgz cacti-data.tgz apache-conf.tgz php-conf.tgz
 rm -f /var/backups/cacti-backup-latest.tgz
 ln -s /var/backups/cacti-backup-${DATESTAMP}.tgz /var/backups/cacti-backup-latest.tgz
