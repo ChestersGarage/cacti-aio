@@ -12,16 +12,16 @@ This is how I run this cacti container.  It sets up all of the configuration and
 docker run -d --rm \
 --net='bridge' \
 -p 1984:80/tcp \
--v '/mnt/cache/appdata/cacti/backups':'/var/backups':'rw' \
--v '/mnt/cache/appdata/cacti/mysql-data':'/var/lib/mysql':'rw' \
--v '/mnt/cache/appdata/cacti/mysql-conf':'/etc/mysql':'rw' \
--v '/mnt/cache/appdata/cacti/cacti-data':'/var/lib/cacti/rra':'rw' \
--v '/mnt/cache/appdata/cacti/apache-conf':'/etc/apache2':'rw' \
--v '/mnt/cache/appdata/cacti/php-conf':'/etc/php7':'rw' \
+-v '/mnt/cache/appdata/Cacti/backups':'/var/backups':'rw' \
+-v '/mnt/cache/appdata/Cacti/mysql-data':'/var/lib/mysql':'rw' \
+-v '/mnt/cache/appdata/Cacti/mysql-conf':'/etc/mysql':'rw' \
+-v '/mnt/cache/appdata/Cacti/cacti-data':'/var/lib/cacti/rra':'rw' \
+-v '/mnt/cache/appdata/Cacti/apache-conf':'/etc/apache2':'rw' \
+-v '/mnt/cache/appdata/Cacti/php-conf':'/etc/php7':'rw' \
 -e TZ="America/Los_Angeles" \
 -e MYSQL='\<mysql root password\>' \
 -e CACTI='\<cacti user db password\>' \
---name cacti \
+--name Cacti \
 chestersgarage/cacti:latest
 
 ```
@@ -56,12 +56,12 @@ The bridged network connection maps port 80 from the container and exposes it at
 These are all the various places we might need to keep or control the data and configurations outside of the container. You don't need to mount all these volumes in your implementation.  The image will install the default configurations anywhere you do not provide your own data.
 
 ```
--v '/mnt/cache/appdata/cacti/backups':'/var/backups':'rw' \
--v '/mnt/cache/appdata/cacti/mysql-data':'/var/lib/mysql':'rw' \
--v '/mnt/cache/appdata/cacti/mysql-conf':'/etc/mysql':'rw' \
--v '/mnt/cache/appdata/cacti/cacti-data':'/var/lib/cacti/rra':'rw' \
--v '/mnt/cache/appdata/cacti/apache-conf':'/etc/apache2':'rw' \
--v '/mnt/cache/appdata/cacti/php-conf':'/etc/php7':'rw' \
+-v '/mnt/cache/appdata/Cacti/backups':'/var/backups':'rw' \
+-v '/mnt/cache/appdata/Cacti/mysql-data':'/var/lib/mysql':'rw' \
+-v '/mnt/cache/appdata/Cacti/mysql-conf':'/etc/mysql':'rw' \
+-v '/mnt/cache/appdata/Cacti/cacti-data':'/var/lib/cacti/rra':'rw' \
+-v '/mnt/cache/appdata/Cacti/apache-conf':'/etc/apache2':'rw' \
+-v '/mnt/cache/appdata/Cacti/php-conf':'/etc/php7':'rw' \
 
 ```
 
@@ -105,7 +105,7 @@ Set the backup schedule with CRON_PATTERN (https://linux.die.net/man/5/crontab)
 
 Make sure your TZ variable is set correctly, too. Cron runs in local time.
 
-The default is every hour, 2 minutes past the hour. The backup file name contains the hour and minute, creating a rolling 24-hour backup archive. Any backup you make manually will also have the same hh-mm time stamp.
+If you do not specify, the default is every hour, 2 minutes past the hour. The backup file name contains the hour and minute, creating a rolling 24-hour backup archive. Any backup you make manually will also have the same hh-mm time stamp.
 ```
 -e CRON_PATTERN="2 * * * *"
 
@@ -122,7 +122,7 @@ Run at 2:15 AM every day.
 ### Accessing Cacti
 
 * The container takes at least 20 seconds to start up.
-* Browse to ...
+* Browse to...
 
 ```
 http://<your_docker_host>:1984/cacti
