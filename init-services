@@ -13,6 +13,7 @@ sleep 3
 
 # Start cron
 # The cacti package installation left a cron file at: /etc/crontabs/cacti
+# Also see: /var/spool/cron/crontabs/root, or just crontab -e
 crond -L /var/log/cron
 
 # Start Apache

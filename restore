@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/bash -x
 
 # Check for whether a backup file was specified
 if [[ $1 ]]
@@ -6,6 +6,9 @@ then
 	RESTOREFILE=$1
 	if [[ -f ${RESTOREFILE} ]]
 	then
+		# Clean up first
+		rm -f /tmp/mysql-data.sql /tmp/mysql-conf.tgz /tmp/cacti-data.tgz /tmp/apache-conf.tgz /tmp/php-conf.tgz
+
 		# Unpack the dated backup
 		tar -zxvf ${RESTOREFILE} -C /tmp
 	else
@@ -14,11 +17,8 @@ then
 		exit 1
 	fi
 else
-	# Clean up first
-	rm -f /tmp/mysql-data.sql /tmp/mysql-conf.tgz /tmp/cacti-data.tgz /tmp/apache-conf.tgz /tmp/php-conf.tgz
-
-	# Unpack the latest backup
-	tar -zxvf /var/backups/cacti-backup-latest.tgz -C /tmp/
+	echo "No restore file name provided."
+	exit 1
 fi
 
 # MySQL data
