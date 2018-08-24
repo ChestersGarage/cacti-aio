@@ -1,8 +1,5 @@
 #!/bin/sh -x
 
-# Clean up first
-rm -f /tmp/mysql-data.sql /tmp/mysql-conf.tgz /tmp/cacti-data.tgz /tmp/apache-conf.tgz /tmp/php-conf.tgz
-
 # Check for whether a backup file was specified
 if [[ $1 ]]
 then
@@ -17,6 +14,9 @@ then
 		exit 1
 	fi
 else
+	# Clean up first
+	rm -f /tmp/mysql-data.sql /tmp/mysql-conf.tgz /tmp/cacti-data.tgz /tmp/apache-conf.tgz /tmp/php-conf.tgz
+
 	# Unpack the latest backup
 	tar -zxvf /var/backups/cacti-backup-latest.tgz -C /tmp/
 fi
