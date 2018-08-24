@@ -1,13 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
 # Clean up first (We don't delete these after backup because they could come in hand later.)
 rm -f /tmp/mysql-conf.tgz /tmp/cacti-data.tgz /tmp/apache-conf.tgz /tmp/php-conf.tgz /tmp/mysql-data.sql
 
-# Create a unique marker for the backup file.
-DATESTAMP=$(date +%Y%m%d$H%M)
+# Create a rolling 24-hour backup.
+DATESTAMP=$(date +%H-%M)
 
 # MySQL data
-mysqldump -uroot -p${MYSQL} --all-databases --add-drop-database --add-locks --single-transaction --flush-privileges --max_allowed_packet=1073741824 > /tmp/mysql-data.sql
+mysqldump -uroot -p${MYSQL} --all-databases --add-locks --single-transaction --flush-privileges --max_allowed_packet=1073741824 > /tmp/mysql-data.sql
 
 # MySQL configs
 cd /etc/mysql

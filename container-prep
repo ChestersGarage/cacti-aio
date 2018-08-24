@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Set cacti database user's password
 # If you don't provide one, we'll set it for you by grabbing some random data (27 alpha-numeric chars of it)
@@ -12,7 +12,6 @@ echo "MySQL root pw - ${MYSQL}"
 export BACKUPDIR="/root/default-configs"
 
 # It's who we are
-# And that's used a lot later
 export CONTAINERFQDN=$(hostname)
 
 # Look for the main httpd.conf because 
@@ -74,7 +73,6 @@ then
 	# Create the cacti databse
 	mysqladmin -uroot -p${MYSQL} create cacti
 	# Set up cacti application access to the database
-	# Every time the container starts, this gets set. You could end up with a lot if you don't use the same one each time.
 	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
 	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
 	#echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY '${CACTI}';" | mysql -u root -p${MYSQL}
@@ -97,8 +95,8 @@ else
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 	sleep 3
 	# Set up cacti application access
-	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -uroot -p${MYSQL}
-	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -uroot -p${MYSQL}
+	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges;" | mysql -uroot -p${MYSQL}
 	#echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
 	#echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
 	# Must make sure MySQL isn't running before we transition to service startup.
@@ -136,6 +134,10 @@ echo "alias ll='ls -l'" >> /root/.bashrc
 # Probably caused by host permissions. (to-do)
 chown -R cacti:cacti /var/lib/cacti/rra
 chown -R mysql:mysql /var/lib/mysql
+
+# Set the default backup schedule, if not provided
+CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
+echo "${CRON_PATTERN} /backup" >> /var/spool/cron/crontabs/root
 
 # Now start all the services.
 /init-services

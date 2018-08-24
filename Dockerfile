@@ -25,6 +25,7 @@ RUN BACKUPDIR="/root/default-configs" && \
 # Update Cacti
 # We start off with the in-distro version, in order to set up dependencies and stuff.
 # Then we download and install the latest version of cacti on top of that.
+# So if you want to update Cacti, just re-run the container from a fresh image.
 RUN ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti && \
 	wget https://www.cacti.net/downloads/cacti-latest.tar.gz && \
 	CACTI_VERSION=$(tar -tf cacti-latest.tar.gz | head -n1 | tr -d /) && \

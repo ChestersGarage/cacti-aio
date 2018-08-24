@@ -1,10 +1,10 @@
-# cacti
+# Cacti
 
 An implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system. This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
 ## Usage
 
-### My Setup
+### My setup
 
 This is how I run this cacti container.  It sets up all of the configuration and data folders in one place.  I'm runing this on my unRAID server, which keeps persistent data on the unRAID cache disk (/mnt/cache).  
 
@@ -27,7 +27,7 @@ chestersgarage/cacti:latest
 ```
 
 
-### Lets break it down...
+### Lets break it down
 
 Run as a daemon, i.e. disconnect from the container after starting, and destroy the container when stopped.
 
@@ -99,10 +99,27 @@ chestersgarage/cacti:latest
 
 ```
 
+### Backup schedule
+
+Set the backup schedule with CRON_PATTERN (https://linux.die.net/man/5/crontab)
+
+Make sure your TZ variable is set correctly, too. Cron runs in local time.
+
+The default is every hour, 2 minutes past the hour. The backup file name contains the hour and minute, creating a rolling 24-hour backup archive. Any backup you make manually will also have the same hh-mm time stamp.
+```
+-e CRON_PATTERN="2 * * * *"
+
+``` 
+
+Run at 2:15 AM every day.
+```
+-e CRON_PATTERN="15 2 * * *"
+
+```
 
 ## Interacting
 
-### Accessing cacti
+### Accessing Cacti
 
 * The container takes at least 20 seconds to start up.
 * Browse to ...
