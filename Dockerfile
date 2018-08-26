@@ -9,18 +9,18 @@ RUN /sbin/apk --no-cache upgrade && \
 # Startup scripts check for existing resources and copy in defauts if none are found
 # Also sets up a few locations, resources and permisions
 RUN BACKUPDIR="/root/default-configs" && \
-	/bin/mkdir -p ${BACKUPDIR}/mysql && \
-	/bin/mv /etc/mysql/my.cnf ${BACKUPDIR}/mysql/ && \
-	/bin/mkdir -p ${BACKUPDIR}/apache && \
-	/bin/mv /etc/apache2/* ${BACKUPDIR}/apache/ && \
-	/bin/mkdir ${BACKUPDIR}/php7 && \
-	/bin/mv /etc/php7/* ${BACKUPDIR}/php7/ && \
-	/bin/mkdir -p /run/apache2 && \
-	/bin/mkdir -p /run/openrc && \
-	/bin/mkdir -p /usr/share/webapps/cacti/log && \
-	/bin/touch /run/openrc/softlevel && \
-	/bin/touch /usr/share/webapps/cacti/log/cacti.log && \
-	/bin/mkdir -p /var/lib/spine/src && \
+	mkdir -p ${BACKUPDIR}/mysql && \
+	mv /etc/mysql/my.cnf ${BACKUPDIR}/mysql/ && \
+	mkdir -p ${BACKUPDIR}/apache && \
+	mv /etc/apache2/* ${BACKUPDIR}/apache/ && \
+	mkdir ${BACKUPDIR}/php7 && \
+	mv /etc/php7/* ${BACKUPDIR}/php7/ && \
+	mkdir -p /run/apache2 && \
+	mkdir -p /run/openrc && \
+	mkdir -p /usr/share/webapps/cacti/log && \
+	touch /run/openrc/softlevel && \
+	touch /usr/share/webapps/cacti/log/cacti.log && \
+	mkdir -p /var/lib/spine/src && \
 	ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti
 
 # Update Cacti
@@ -36,14 +36,15 @@ RUN wget https://www.cacti.net/downloads/cacti-latest.tar.gz && \
 	chown -R apache:apache /usr/share/webapps/cacti/cache/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/resource/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/scripts/ && \
-	chown -R apache:apache /var/log/cacti/
+	chown -R apache:apache /var/log/cacti/ && \
+	mkdir -p /var/backups
 
 # Download and install spine.
 # https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
 RUN cd /var/lib/spine/src && \
-	/usr/bin/wget http://www.cacti.net/downloads/spine/cacti-spine-latest.tar.gz && \
+	wget http://www.cacti.net/downloads/spine/cacti-spine-latest.tar.gz && \
 	SPINE_VERSION=$(tar -tf cacti-spine-latest.tar.gz | head -n1 | tr -d /) && \
-	/bin/tar -zxvf cacti-spine-latest.tar.gz && \
+	tar -zxvf cacti-spine-latest.tar.gz && \
 	cd /var/lib/spine/src/${SPINE_VERSION}/ && \
 	/usr/bin/aclocal && \
 	/usr/bin/libtoolize --force && \

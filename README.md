@@ -2,6 +2,18 @@
 
 An implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
+## Notable image updates
+
+Cleaned up security a bit. 
+* MySQL root password is no longer manipulated at startup.  You must provide the correct password when starting the container. 
+* Passwords for the Cacti and backups DB users are reset upon startup to whatever you provide, if you provide the correct MySQL root password.
+* Cacti user and MySQL root passwords are no longer left in memory as environment variables.
+* New "backups" user for MySQL data backups, with password as environment variable.
+* Check for the presence of all three required passwords, and fail to start if not provided.
+* Verify provided MySQL root password is valid, and fail to start the container if it's not.
+
+Added scheduled backups.
+
 ## Usage
 
 ### My setup
@@ -19,8 +31,9 @@ docker run -d --rm \
 -v '/mnt/cache/appdata/Cacti/apache-conf':'/etc/apache2':'rw' \
 -v '/mnt/cache/appdata/Cacti/php-conf':'/etc/php7':'rw' \
 -e TZ="America/Los_Angeles" \
--e MYSQL='\<mysql root password\>' \
--e CACTI='\<cacti user db password\>' \
+-e MYSQL='<mysql root password>' \
+-e CACTI='<cacti user db password>' \
+-e BACKUPS='<backups user db password>' \
 --name Cacti \
 chestersgarage/cacti:latest
 
@@ -77,9 +90,12 @@ See the "TZ" column here: https://en.wikipedia.org/wiki/List_of_tz_database_time
 
 The controversial part!  Feed in your passwords here. In a future version of this image, I will add other, more secure ways to feed in passwords.
 
+UPDATE: You must know and provide the correct MySQL root password now, or the container will fail to start.  I've removed the logic that sets the MySQL root password, as part of my security updates.
+
 ```
 -e MYSQL='<mysql root password>' \
 -e CACTI='<cacti user db password>' \
+-e BACKUPS='<backups user db password>' \
 
 ```
 

@@ -1,39 +1,70 @@
 #!/bin/bash
 
-# Set cacti database user's password
-# If you don't provide one, we'll set it for you by grabbing some random data (27 alpha-numeric chars of it)
-CACTI=${CACTI:-$(base64 /dev/urandom | tr -dc 'a-zA-Z-09' | fold -w 27 | head -n1)}
-echo "Cacti db user pw - ${CACTI}"
-echo "MySQL root pw - ${MYSQL}"
+# Check for passwords at container startup
+# Fail to start the container if not provided
+if [[ -z "$CACTI" ]]
+then
+	echo "Password for Cacti DB user 'cactiuser' was not provided."
+	exit 1
+fi
 
-# Check for existing configs, and
-# copy in any that are missing, mal-formed or unrecognized
-# IMPORTANT: If you provide broken configs, we may overwrite them with defaults.
-export BACKUPDIR="/root/default-configs"
+if [[ -z "$BACKUPS" ]]
+then
+	echo "Password for DB backup user 'backups' was not provided."
+	exit 1
+fi
+
+if [[ -z "$MYSQL" ]]
+then
+	echo "Password for MySQL/MariaDB root user was not provided."
+	exit 1
+fi
+
+# Add a check to verify the provided MySQL root password actually works
+# Fail to start up if incorrect.
+
+# All the default confgs from package installtion are here.
+# If any are missing from their normal locations at startup,
+# the steps below will restore them.
+BACKUPDIR="/root/default-configs"
 
 # It's who we are
 export CONTAINERFQDN=$(hostname)
 
-# Look for the main httpd.conf because 
-# if it's missing, the rest doesn't matter
+# Look for the main httpd.conf
+# If it's missing, the rest doesn't matter
+# Everything else will be moved to bak.
 if [[ ! -f /etc/apache2/httpd.conf ]]
 then
+	# We don't want anything else that might be in there either
+	mkdir /etc/apache2/bak
+	mv -f /etc/apache2/* /etc/apache2/bak
+	# Copy in the defaults
 	cp -rpf ${BACKUPDIR}/apache/* /etc/apache2/
 fi
 
+# Drop the current host name into a config file so Apache doesn't complain about it at startup
 echo "ServerName ${CONTAINERFQDN}" > /etc/apache2/conf.d/fqdn.conf
 
-# Same for PHP as Apache above.
-# Just look for the key config file.
+# Look for the main php.ini file
+# If it's missing, the rest doesn't matter
+# Everything else will be moved to bak.
 if [[ ! -f /etc/php7/php.ini ]]
 then
+	mkdir -p /etc/php7/bak
+	mv -f /etc/php7/* /etc/php7/bak
 	sed -i "s|\;date.timezone =|date.timezone = \"${TZ}\"|" /root/default-configs/php7/php.ini
 	cp -rpf ${BACKUPDIR}/php7/* /etc/php7/
 fi
 
-# MySQL only has one config file
+# Look for main my.cnf file
+# If it's mising, the rest doesn't matter
+# Everything else will be moved to bak.
 if [[ ! -f /etc/mysql/my.cnf ]]
 then
+	mkdir /etc/mysql/bak
+	mv -f /etc/mysql/* /etc/mysql/bak
+	# Then set our config
 	cat > /etc/mysql/my.cnf <<EOF
 [mysqld]
 collation_server = utf8mb4_unicode_ci
@@ -50,13 +81,15 @@ innodb_write_io_threads = 16
 EOF
 fi
 
-# Checking for the presence of a cacti database folder in the mysql data
-# Again, no cacti means this is a fresh installation
-# and initialize MySQL/MariaDB.
-# Everything else will be overwritten or ignored.
+# Check for the presence of a cacti database folder in the mysql data
+# If it's missing, initialize MySQL/MariaDB.
+# Everything else will be moved to bak.
 if [[ ! -d /var/lib/mysql/cacti ]]
 then
 	# Start from fresh
+	# Move any existing files out of the way
+	mkdir /var/lib/mysql/bak
+	mv -f /var/lib/mysql/* /var/lib/mysql/bak
 	# Initialize the database
 	/etc/init.d/mariadb setup
 	# Start MySQL/MariaDB
@@ -70,38 +103,49 @@ then
 	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
 	# Refresh the running MySQL server
 	mysqladmin -uroot -p${MYSQL} reload
-	# Create the cacti databse
+	# Create the cacti database
 	mysqladmin -uroot -p${MYSQL} create cacti
-	# Set up cacti application access to the database
-	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-	#echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY '${CACTI}';" | mysql -u root -p${MYSQL}
-	#echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges;" | mysql -u root -p${MYSQL}
 	# Ingest the cacti initialization script
 	mysql -uroot -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
-	# Must make sure MySQL isn't running before we transition to service startup.
-	mysqladmin -uroot -p${MYSQL} shutdown
 else
-	# Existing data to use and become.
-	# First, make sure authentication and access are cleaned up
-	nohup /usr/bin/mysqld_safe --skip-grant-tables &
-	sleep 3
-	echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'cacti';" | mysql -uroot -p${MYSQL}
-	echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'root';" | mysql -uroot -p${MYSQL}
-	echo "UPDATE mysql.user SET password=PASSWORD(\"${MYSQL}\") WHERE User='root'; flush privileges;" | mysql -uroot -p${MYSQL}
-	mysqladmin -uroot -p${MYSQL} shutdown
-	sleep 1
-
+	# With exising data, just start the database so we can set up user access.
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 	sleep 3
-	# Set up cacti application access
-	echo "GRANT ALL ON cacti.* TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-	echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@${CONTAINERFQDN} IDENTIFIED BY '${CACTI}'; flush privileges;" | mysql -uroot -p${MYSQL}
-	#echo "GRANT ALL ON cacti.* TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
-	#echo "GRANT SELECT ON mysql.time_zone_name TO cactiuser@localhost IDENTIFIED BY '${CACTI}'; flush privileges; " | mysql -u root -p${MYSQL}
-	# Must make sure MySQL isn't running before we transition to service startup.
-	mysqladmin -uroot -p${MYSQL} shutdown
 fi
+
+# Verify provided MySQL root password is valid.
+echo "exit" | mysql -uroot -p${MYSQL}
+if [[ "$?" != "0" ]]
+then
+	echo "Cannot connect to MySQL with the provided root password."
+	exit 1
+fi
+
+# Set up cacti application access to the database
+# The success of all this depends on the correct MySQL root password being provided.
+# Clear out old user tables entries
+echo "DELETE FROM mysql.user WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
+echo "DELETE FROM mysql.user WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
+
+# Create a user for running backups
+echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CONTAINERFQDN}' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
+echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
+
+# Create the cacti user
+echo "GRANT ALL ON cacti.* TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+echo "GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+
+echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+
+# Avoid unix sockets based access
+echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
+echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
+echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';" | mysql -uroot -p${MYSQL}
+echo "flush privileges;" | mysql -uroot -p${MYSQL}
+
+# Must make sure MySQL isn't running before we transition to service startup.
+mysqladmin -uroot -p${MYSQL} shutdown
 
 # Set the spine.conf with current info
 # The docs say to use DB_Password, but actually DB_Pass is correct.
@@ -138,6 +182,10 @@ chown -R mysql:mysql /var/lib/mysql
 # Set the default backup schedule, if not provided
 CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
 echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
+
+# Remove the important passwords from memory
+unset MYSQL
+unset CACTI
 
 # Now start all the services.
 /init-services
