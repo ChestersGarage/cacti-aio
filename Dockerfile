@@ -21,7 +21,8 @@ RUN BACKUPDIR="/root/default-configs" && \
 	touch /run/openrc/softlevel && \
 	touch /usr/share/webapps/cacti/log/cacti.log && \
 	mkdir -p /var/lib/spine/src && \
-	ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti
+	ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti && \
+	mkdir -p /var/backups
 
 # Update Cacti
 # We start off with the in-distro version, in order to set up dependencies and stuff.
@@ -36,8 +37,7 @@ RUN wget https://www.cacti.net/downloads/cacti-latest.tar.gz && \
 	chown -R apache:apache /usr/share/webapps/cacti/cache/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/resource/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/scripts/ && \
-	chown -R apache:apache /var/log/cacti/ && \
-	mkdir -p /var/backups
+	chown -R apache:apache /var/log/cacti/
 
 # Download and install spine.
 # https://www.cacti.net/downloads/docs/html/unix_configure_spine.html

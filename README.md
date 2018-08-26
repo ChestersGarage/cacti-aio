@@ -4,7 +4,7 @@ An implementation of the Cacti (https://www.cacti.net) network monitoring and gr
 
 ## Notable image updates
 
-Cleaned up security a bit. 
+### Cleaned up security a bit. 
 * MySQL root password is no longer manipulated at startup.  You must provide the correct password when starting the container. 
 * Passwords for the Cacti and backups DB users are reset upon startup to whatever you provide, if you provide the correct MySQL root password.
 * Cacti user and MySQL root passwords are no longer left in memory as environment variables.
@@ -12,7 +12,8 @@ Cleaned up security a bit.
 * Check for the presence of all three required passwords, and fail to start if not provided.
 * Verify provided MySQL root password is valid, and fail to start the container if it's not.
 
-Added scheduled backups.
+### Added scheduled backups.
+### Make backups of anything removed from configs during startup.
 
 ## Usage
 
@@ -220,4 +221,3 @@ tar -zxvf /var/backups/cacti-rrd-data.tgz
 * Provide for more secure injection or retrieval of passwords
 * Add LetsEncrypt SSL support
 * Try to verify the container supports distributed and large-scale implementations.
-* Make detection of existing configs move anything old/exiting to a separate folder before copying in the defaults.

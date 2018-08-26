@@ -11,19 +11,19 @@ mysqldump -ubackups -p${BACKUPS} --all-databases --add-locks --single-transactio
 
 # MySQL configs
 cd /etc/mysql
-tar -zcf /tmp/mysql-conf.tgz *
+tar -zcf /tmp/mysql-conf.tgz ./*
 
 # Cacti data
 cd /var/lib/cacti/rra
-tar -zcf /tmp/cacti-data.tgz *
+tar -zcf /tmp/cacti-data.tgz ./*
 
 # Apache configs
 cd /etc/apache2
-tar -zcf /tmp/apache-conf.tgz *
+tar -zcf /tmp/apache-conf.tgz ./*
 
 # PHP configs
 cd /etc/php7
-tar -zcf /tmp/php-conf.tgz *
+tar -zcf /tmp/php-conf.tgz ./*
 
 # Bundle it all up, and link it to the latest.
 tar -zcf /var/backups/cacti-backup-${DATESTAMP}.tgz -C /tmp mysql-data.sql mysql-conf.tgz cacti-data.tgz apache-conf.tgz php-conf.tgz
