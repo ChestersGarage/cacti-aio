@@ -20,9 +20,6 @@ then
 	exit 1
 fi
 
-# Add a check to verify the provided MySQL root password actually works
-# Fail to start up if incorrect.
-
 # All the default confgs from package installtion are here.
 # If any are missing from their normal locations at startup,
 # the steps below will restore them.
