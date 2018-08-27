@@ -103,7 +103,7 @@ else
 fi
 
 # Verify provided MySQL root password is valid.
-echo "exit" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
+echo "exit" | mysql -uroot -p${MYSQL}
 if [[ "$?" != "0" ]]
 then
 	echo "Cannot connect to MySQL with the provided root password."
