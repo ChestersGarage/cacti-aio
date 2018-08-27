@@ -2,23 +2,15 @@
 
 # Check for passwords at container startup
 # Fail to start the container if not provided
-if [[ -z "$CACTI" ]]
-then
-	echo "Password for Cacti DB user 'cactiuser' was not provided."
-	exit 1
-fi
-
-if [[ -z "$BACKUPS" ]]
-then
-	echo "Password for DB backup user 'backups' was not provided."
-	exit 1
-fi
-
 if [[ -z "$MYSQL" ]]
 then
 	echo "Password for MySQL/MariaDB root user was not provided."
 	exit 1
 fi
+
+# Create new passwords for cacti and backups users
+CACTI=$(base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 27 | head -n1)
+BACKUPS=$(base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 27 | head -n1)
 
 # All the default confgs from package installtion are here.
 # If any are missing from their normal locations at startup,
@@ -95,15 +87,15 @@ then
 	# Set the MySQL root password
 	mysqladmin -u root password ${MYSQL}
 	# Ingest timezone data from the O/S
-	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
+	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN} mysql
 	# Set the current timezone for MySQL 
 	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
 	# Refresh the running MySQL server
-	mysqladmin -uroot -p${MYSQL} reload
+	mysqladmin -uroot -p${MYSQL} -h${CONTAINERFQDN} reload
 	# Create the cacti database
-	mysqladmin -uroot -p${MYSQL} create cacti
+	mysqladmin -uroot -p${MYSQL} -h${CONTAINERFQDN} create cacti
 	# Ingest the cacti initialization script
-	mysql -uroot -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
+	mysql -uroot -p${MYSQL} -h${CONTAINERFQDN} cacti < /usr/share/webapps/cacti/cacti.sql
 else
 	# With exising data, just start the database so we can set up user access.
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
@@ -111,7 +103,7 @@ else
 fi
 
 # Verify provided MySQL root password is valid.
-echo "exit" | mysql -uroot -p${MYSQL}
+echo "exit" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
 if [[ "$?" != "0" ]]
 then
 	echo "Cannot connect to MySQL with the provided root password."
@@ -121,28 +113,28 @@ fi
 # Set up cacti application access to the database
 # The success of all this depends on the correct MySQL root password being provided.
 # Clear out old user tables entries
-echo "DELETE FROM mysql.user WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
-echo "DELETE FROM mysql.user WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
+echo "DELETE FROM mysql.user WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
+echo "DELETE FROM mysql.user WHERE User = 'backups';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
 
 # Create a user for running backups
-echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CONTAINERFQDN}' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
-echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
+echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CONTAINERFQDN}' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
+echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
 
 # Create the cacti user
-echo "GRANT ALL ON cacti.* TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-echo "GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+echo "GRANT ALL ON cacti.* TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
+echo "GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
 
-echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
+echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
 
 # Avoid unix sockets based access
-echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
-echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
-echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';" | mysql -uroot -p${MYSQL}
+echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
+echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
+echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';" | mysql -uroot -p${MYSQL} -h${CONTAINERFQDN}
 echo "flush privileges;" | mysql -uroot -p${MYSQL}
 
 # Must make sure MySQL isn't running before we transition to service startup.
-mysqladmin -uroot -p${MYSQL} shutdown
+mysqladmin -uroot -p${MYSQL} -h${CONTAINERFQDN} shutdown
 
 # Set the spine.conf with current info
 # The docs say to use DB_Password, but actually DB_Pass is correct.

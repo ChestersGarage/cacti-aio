@@ -2,18 +2,12 @@
 
 An implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
-## Notable image updates
+## Cleaned up security a bit
 
-### Cleaned up security a bit. 
-* MySQL root password is no longer manipulated at startup.  You must provide the correct password when starting the container. 
-* Passwords for the Cacti and backups DB users are reset upon startup to whatever you provide, if you provide the correct MySQL root password.
-* Cacti user and MySQL root passwords are no longer left in memory as environment variables.
+* MySQL root password is no longer manipulated at startup. You must provide the correct password when starting the container. 
+* Passwords for the Cacti and backups DB users are automatically created at startup. No longer accepted as environment variables.
 * New "backups" user for MySQL data backups, with password as environment variable.
-* Check for the presence of all three required passwords, and fail to start if not provided.
 * Verify provided MySQL root password is valid, and fail to start the container if it's not.
-
-### Added scheduled backups.
-### Make backups of anything removed from configs during startup.
 
 ## Usage
 
@@ -33,8 +27,6 @@ docker run -d --rm \
 -v '/mnt/cache/appdata/Cacti/php-conf':'/etc/php7':'rw' \
 -e TZ="America/Los_Angeles" \
 -e MYSQL='<mysql root password>' \
--e CACTI='<cacti user db password>' \
--e BACKUPS='<backups user db password>' \
 --name Cacti \
 chestersgarage/cacti:latest
 
@@ -95,8 +87,6 @@ UPDATE: You must know and provide the correct MySQL root password now, or the co
 
 ```
 -e MYSQL='<mysql root password>' \
--e CACTI='<cacti user db password>' \
--e BACKUPS='<backups user db password>' \
 
 ```
 
