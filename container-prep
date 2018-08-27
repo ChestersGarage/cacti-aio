@@ -175,6 +175,7 @@ echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 # Remove the important passwords from memory
 unset MYSQL
 unset CACTI
+export BACKUPS
 
 # Now start all the services.
 /init-services
