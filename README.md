@@ -168,6 +168,21 @@ docker exec -it cacti /bin/bash
 
 ```
 
+### Backup and restore
+
+In addition to running regular scheduled backups, you can trigger a full backup at any time with the following
+```
+docker exec cacti /backup
+
+```
+
+If you need to restore from a backup, place the backup file in the folder mounted as /var/backups. Then run the restore command with the file name as an argument.
+
+```
+docker exec cacti /restore <file-name>
+
+```
+
 ## Migrating between Cacti instances
 
 If you want to migrate (or just copy for testing) from another Cacti installation, start the container fresh, then dump ONLY the cacti database from your old installation, and package up the cacti RRD files. Then stuff it all into the new container.  It is safe to run more than one Cacti container at a time, provided you specify non-conflicting settings in each container.

@@ -4,13 +4,13 @@
 if [[ $1 ]]
 then
 	RESTOREFILE=$1
-	if [[ -f ${RESTOREFILE} ]]
+	if [[ -f /var/backups/${RESTOREFILE} ]]
 	then
 		# Clean up first
 		rm -f /tmp/mysql-data.sql /tmp/mysql-conf.tgz /tmp/cacti-data.tgz /tmp/apache-conf.tgz /tmp/php-conf.tgz
 
 		# Unpack the dated backup
-		tar -zxvf ${RESTOREFILE} -C /tmp
+		tar -zxvf /var/backups/${RESTOREFILE} -C /tmp
 	else
 		echo "Backup ${RESTOREFILE} could not be found."
 		echo "Please make sure it exists in /var/backups."
@@ -63,5 +63,15 @@ chown -R apache:apache /usr/share/webapps/cacti/scripts/
 chown -R apache:apache /var/log/cacti/
 
 # Reload/restart to make sure things are clean
-mysqladmin -uroot -p${MYSQL} reload
+mysqladmin -uroot -p${MYSQL} shutdown
+# Restart MySQL in insecure mode to set the root pasword
+# This is one of those things that highlights the security issues with running MySQL
+# in the same container as Apache/PHP. Root password is not at all secured.
+nohup /usr/bin/mysqld_safe --skip-grant-tables --datadir="/var/lib/mysql" &
+sleep 3
+mysqladmin -u root password ${MYSQL}
+# And put it back to normal
+mysqladmin -uroot -p${MYSQL} shutdown
+nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
+# Bounce Apache too
 /usr/sbin/httpd -k restart -f /etc/apache2/httpd.conf
