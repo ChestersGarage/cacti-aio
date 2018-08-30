@@ -4,14 +4,9 @@ An implementation of the Cacti (https://www.cacti.net) network monitoring and gr
 
 ## This image is still highly in flux
 
-I'm actively refining this Docker image, and commonly update it in ways that may cause loss of data if you blindly install or update your container, wihtout reading the notes here.
+I'm actively refining, updating and adding major changes to this image, and commonly update it in ways that may cause loss of data.
 
-## Cleaned up security a bit
-
-* MySQL root password is no longer manipulated at startup. You must provide the correct password when starting the container. 
-* Passwords for the Cacti and backups DB users are automatically created at startup. No longer accepted as environment variables.
-* New "backups" user for MySQL data backups, with password as environment variable.
-* Verify provided MySQL root password is valid, and fail to start the container if it's not.
+My current focus is on solidifying the backup and restore processes, so that there is some sort of path through changes that won't lose data.
 
 ## Usage
 
