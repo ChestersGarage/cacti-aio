@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Check for passwords at container startup
 # Fail to start the container if not provided
 if [[ -z "$MYSQL" ]]
@@ -172,9 +170,6 @@ chown -R mysql:mysql /var/lib/mysql
 CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
 echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 
-# Remove the important passwords from memory
-unset MYSQL
-unset CACTI
 export BACKUPS
 
 # Now start all the services.

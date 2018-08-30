@@ -73,4 +73,4 @@ ADD init-services /
 ADD backup /
 ADD restore /
 
-ENTRYPOINT ["/bin/bash", "-c", "/container-prep"]
+ENTRYPOINT ["/container-prep"]
