@@ -1,3 +1,4 @@
+#!/bin/sh
 # Check for passwords at container startup
 # Fail to start the container if not provided
 if [[ -z "$MYSQL" ]]
