@@ -9,7 +9,7 @@ fi
 
 # Create new passwords for cacti and backups users
 CACTI=$(base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 27 | head -n1)
-BACKUPS=$(base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 27 | head -n1)
+export BACKUPS=$(base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 27 | head -n1)
 
 # All the default confgs from package installtion are here.
 # If any are missing from their normal locations at startup,
@@ -171,7 +171,7 @@ chown -R mysql:mysql /var/lib/mysql
 CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
 echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 
-export BACKUPS
+echo "BACKUPS=${BACKUPS}" >> /root/.bashrc
 
 # Now start all the services.
 /init-services
