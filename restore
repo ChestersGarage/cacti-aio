@@ -64,14 +64,15 @@ chown -R apache:apache /var/log/cacti/
 
 # Reload/restart to make sure things are clean
 mysqladmin -uroot -p${MYSQL} shutdown
-# Restart MySQL in insecure mode to set the root pasword
+# Restart MySQL in insecure mode to reset the root pasword
 # This is one of those things that highlights the security issues with running MySQL
 # in the same container as Apache/PHP. Root password is not at all secured.
 nohup /usr/bin/mysqld_safe --skip-grant-tables --datadir="/var/lib/mysql" &
 sleep 3
-mysqladmin -u root password ${MYSQL}
+mysqladmin flush-privileges password '*'
 # And put it back to normal
 mysqladmin -uroot -p${MYSQL} shutdown
 nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
+mysqladmin -u root password ${MYSQL}
 # Bounce Apache too
 /usr/sbin/httpd -k restart -f /etc/apache2/httpd.conf

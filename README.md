@@ -170,7 +170,8 @@ docker exec -it cacti /bin/bash
 
 ### Backup and restore
 
-In addition to running regular scheduled backups, you can trigger a full backup at any time with the following
+In addition to running regular scheduled backups, you can trigger a full backup at any time with the following. This will write a backup file to /var/backups inside the container.
+
 ```
 docker exec cacti /backup
 
