@@ -1,5 +1,8 @@
 #!/bin/bash -x
 
+# Grab root's shell env
+. /root/.bashrc
+
 # Check for whether a backup file was specified
 if [[ $1 ]]
 then
@@ -62,32 +65,9 @@ chown -R apache:apache /usr/share/webapps/cacti/resource/
 chown -R apache:apache /usr/share/webapps/cacti/scripts/
 chown -R apache:apache /var/log/cacti/
 
-# Reload/restart to make sure things are clean
+# Stop everything to make it obvious the container needs a reset
 mysqladmin -uroot -p${MYSQL} shutdown
-sleep 1
-nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
-sleep 3
-
-# Clear out old user tables entries
-echo "DELETE FROM mysql.user WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
-echo "DELETE FROM mysql.user WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
-
-# Create a user for running backups
-echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CONTAINERFQDN}' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
-echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
-
-# Create the cacti user
-echo "GRANT ALL ON cacti.* TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-echo "GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-
-echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-
-# Avoid unix sockets based access
-echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
-echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
-echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';" | mysql -uroot -p${MYSQL}
-echo "flush privileges;" | mysql -uroot -p${MYSQL}
-
 # Bounce Apache too
-/usr/sbin/httpd -k restart -f /etc/apache2/httpd.conf
+/usr/sbin/httpd -k stop
+
+echo "Please stop and remove the container. Then re-run it."
