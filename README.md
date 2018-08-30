@@ -184,6 +184,8 @@ docker exec cacti /restore <file-name>
 
 ```
 
+Once the restore completes, you must stop and remove the cacti container, and then re-run it.
+
 ## Migrating between Cacti instances
 
 If you want to migrate (or just copy for testing) from another Cacti installation, start the container fresh, then dump ONLY the cacti database from your old installation, and package up the cacti RRD files. Then stuff it all into the new container.  It is safe to run more than one Cacti container at a time, provided you specify non-conflicting settings in each container.

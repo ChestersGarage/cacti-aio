@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # Grab root's shell env
 . /root/.bashrc
