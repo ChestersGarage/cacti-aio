@@ -159,9 +159,6 @@ EOF
 sed -i "s/database_hostname = 'localhost'/database_hostname = '${CONTAINERFQDN}'/" /usr/share/webapps/cacti/include/config.php
 sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/webapps/cacti/include/config.php
 
-# I use ll all the time.
-echo "alias ll='ls -l'" >> /root/.bashrc
-
 # This gets reset to root:root for some reason, so I set it back.
 # Probably caused by host permissions. (to-do)
 chown -R cacti:cacti /var/lib/cacti/rra
@@ -171,7 +168,9 @@ chown -R mysql:mysql /var/lib/mysql
 CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
 echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 
-echo "BACKUPS=${BACKUPS}" >> /root/.bashrc
+echo "export BACKUPS=${BACKUPS}" >> /root/.bashrc
+# I use ll all the time.
+echo "alias ll='ls -l'" >> /root/.bashrc
 
 # Now start all the services.
 /init-services

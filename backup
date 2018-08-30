@@ -7,7 +7,7 @@ rm -f /tmp/mysql-conf.tgz /tmp/cacti-data.tgz /tmp/apache-conf.tgz /tmp/php-conf
 DATESTAMP=$(date +%H-%M)
 
 # MySQL data
-mysqldump -ubackups -p${BACKUPS} -h${CONTAINERFQDN} --all-databases --add-locks --single-transaction --flush-privileges --max_allowed_packet=1073741824 > /tmp/mysql-data.sql
+mysqldump -ubackups -p${BACKUPS} --all-databases --add-locks --single-transaction --flush-privileges --max_allowed_packet=1073741824 > /tmp/mysql-data.sql
 
 # MySQL configs
 cd /etc/mysql
