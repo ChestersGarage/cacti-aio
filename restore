@@ -64,15 +64,30 @@ chown -R apache:apache /var/log/cacti/
 
 # Reload/restart to make sure things are clean
 mysqladmin -uroot -p${MYSQL} shutdown
-# Restart MySQL in insecure mode to reset the root pasword
-# This is one of those things that highlights the security issues with running MySQL
-# in the same container as Apache/PHP. Root password is not at all secured.
-nohup /usr/bin/mysqld_safe --skip-grant-tables --datadir="/var/lib/mysql" &
-sleep 3
-mysqladmin flush-privileges password '*'
-# And put it back to normal
-mysqladmin -uroot -p${MYSQL} shutdown
+sleep 1
 nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
-mysqladmin -u root password ${MYSQL}
+sleep 3
+
+# Clear out old user tables entries
+echo "DELETE FROM mysql.user WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
+echo "DELETE FROM mysql.user WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
+
+# Create a user for running backups
+echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CONTAINERFQDN}' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
+echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
+
+# Create the cacti user
+echo "GRANT ALL ON cacti.* TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+echo "GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+
+echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+
+# Avoid unix sockets based access
+echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
+echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
+echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';" | mysql -uroot -p${MYSQL}
+echo "flush privileges;" | mysql -uroot -p${MYSQL}
+
 # Bounce Apache too
 /usr/sbin/httpd -k restart -f /etc/apache2/httpd.conf

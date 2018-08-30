@@ -84,7 +84,7 @@ then
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 	sleep 3
 	# Set the MySQL root password
-	mysqladmin -u root password ${MYSQL}
+	mysqladmin -uroot password ${MYSQL}
 	# Ingest timezone data from the O/S
 	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
 	# Set the current timezone for MySQL 
