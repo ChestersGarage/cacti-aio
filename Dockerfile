@@ -1,5 +1,7 @@
 FROM alpine:latest
 
+ENV CACTI_VERSION=latest
+
 # Install all the things we need to do everything.
 RUN /sbin/apk --no-cache upgrade && \
 	/sbin/apk --no-cache add apache2 mariadb mariadb-client php7 cacti cacti-php7 vim php7-apache2 net-snmp curl tzdata openrc cacti-setup wget patch gd php7-dom automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
@@ -26,12 +28,10 @@ RUN BACKUPDIR="/root/default-configs" && \
 
 # Update Cacti
 # We start off with the in-distro version, in order to set up dependencies and stuff.
-# Then we download and install the latest version of cacti on top of that.
-# So if you want to update Cacti, just re-run the container from a fresh image.
-RUN wget https://www.cacti.net/downloads/cacti-latest.tar.gz && \
-	CACTI_VERSION=$(tar -tf cacti-latest.tar.gz | head -n1 | tr -d /) && \
-	ln -s /usr/share/webapps/cacti /usr/share/webapps/${CACTI_VERSION} && \
-	tar -xvf cacti-latest.tar.gz -C /usr/share/webapps && \
+# Then we download and install the ${CACTI_VERSION} version of cacti on top of that.
+RUN wget https://www.cacti.net/downloads/cacti-${CACTI_VERSION}.tar.gz && \
+	ln -s /usr/share/webapps/cacti /usr/share/webapps/cacti-${CACTI_VERSION} && \
+	tar -xvf cacti-${CACTI_VERSION}.tar.gz -C /usr/share/webapps && \
 	chown -R cacti:cacti /usr/share/webapps/cacti/ && \
 	chown -R cacti:cacti /var/lib/cacti/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/cache/ && \
@@ -40,12 +40,12 @@ RUN wget https://www.cacti.net/downloads/cacti-latest.tar.gz && \
 	chown -R apache:apache /var/log/cacti/
 
 # Download and install spine.
+# Naturally, spine's version is locked to cacti's version
 # https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
 RUN cd /var/lib/spine/src && \
-	wget http://www.cacti.net/downloads/spine/cacti-spine-latest.tar.gz && \
-	SPINE_VERSION=$(tar -tf cacti-spine-latest.tar.gz | head -n1 | tr -d /) && \
-	tar -zxvf cacti-spine-latest.tar.gz && \
-	cd /var/lib/spine/src/${SPINE_VERSION}/ && \
+	wget http://www.cacti.net/downloads/spine/cacti-spine-${CACTI_VERSION}.tar.gz && \
+	tar -zxvf cacti-spine-${CACTI_VERSION}.tar.gz && \
+	cd /var/lib/spine/src/cacti-spine-${CACTI_VERSION}/ && \
 	/usr/bin/aclocal && \
 	/usr/bin/libtoolize --force && \
 	/usr/bin/autoheader && \
@@ -58,10 +58,6 @@ RUN cd /var/lib/spine/src && \
 	/usr/bin/make install && \
 	/bin/chown root:root /usr/local/spine/bin/spine && \
 	/bin/chmod +s /usr/local/spine/bin/spine
-
-# Get rid of the tools used to build spine. We don't need them any longer.
-# Apparently we do.
-#RUN /sbin/apk --no-cache del automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
 
 # Apply a bug fix caused by PHP 7.2
 RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/utility.php && \

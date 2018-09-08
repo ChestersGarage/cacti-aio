@@ -150,7 +150,7 @@ EOF
 # The problem is these are set prior to cacti's first-run process, which overwrites them.
 # I could force these in a cron job, but it would lock out recovery other than killing the container.
 #echo "INSERT INTO cacti.settings VALUES ("path_spine","/usr/local/spine/bin/spine");" | mysql -uroot -p${MYSQL}
-#echo "INSERT INTO cacti.settings VALUES ("path_spine_config","/usr/local/spine/bin/spine.conf");" | mysql -uroot -p${MYSQL}
+#echo "INSERT INTO cacti.settings VALUES ("path_spine_config","/usr/local/spine/etc/spine.conf");" | mysql -uroot -p${MYSQL}
 #echo "UPDATE cacti.settings SET value = "2" WHERE settings.name = 'poller_type';" | mysql -uroot -p${MYSQL}
 
 # Set the DB info for cacti.
