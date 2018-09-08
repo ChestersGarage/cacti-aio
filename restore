@@ -16,11 +16,13 @@ then
 		tar -zxvf /var/backups/${RESTOREFILE} -C /tmp
 	else
 		echo "Backup ${RESTOREFILE} could not be found."
-		echo "Please make sure it exists in /var/backups."
+		echo "Please make sure it exists inside the container under /var/backups."
 		exit 1
 	fi
 else
 	echo "No restore file name provided."
+	echo "Must be a file located under /var/backups inside the container."
+	echo "Specify the file name without any path."
 	exit 1
 fi
 
