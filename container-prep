@@ -138,7 +138,7 @@ mysqladmin -uroot -p${MYSQL} shutdown
 # Set the spine.conf with current info
 # The docs say to use DB_Password, but actually DB_Pass is correct.
 # https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
-cat > /usr/local/spine/bin/spine.conf <<EOF
+cat > /usr/local/spine/etc/spine.conf <<EOF
 DB_Host ${CONTAINERFQDN}
 DB_Database cacti
 DB_User cactiuser
@@ -168,6 +168,7 @@ chown -R mysql:mysql /var/lib/mysql
 CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
 echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 
+# If you use /bin/sh, make sure you source this file after logging in.
 echo "export BACKUPS=${BACKUPS}" >> /root/.bashrc
 # I use ll all the time.
 echo "alias ll='ls -l'" >> /root/.bashrc

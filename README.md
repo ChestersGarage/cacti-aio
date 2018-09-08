@@ -1,12 +1,12 @@
 # Cacti
 
-An implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
+An all-in-one implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
 ## This image is still highly in flux
 
 I'm actively refining, updating and adding major changes to this image, and commonly update it in ways that may cause loss of data.
 
-My current focus is on solidifying the backup and restore processes, so that there is some sort of path through changes that won't lose data.
+My current focus is on solidifying the backup and restore processes, so that there is some sort of path that wont lose data through changes.
 
 ## Usage
 
@@ -31,7 +31,6 @@ chestersgarage/cacti:latest
 
 ```
 
-
 ### Lets break it down
 
 Run as a daemon, i.e. disconnect from the container after starting, and destroy the container when stopped.
@@ -50,7 +49,7 @@ Bridging the network means this service is bound to the IP address of the host c
 ```
 
 
-The bridged network connection maps port 80 from the container and exposes it at port 1984 on the host IP.
+The bridged network connection maps TCP port 80 from the container and exposes it at port 1984 on the host IP.
 
 ```
 -p 1984:80/tcp \
@@ -111,15 +110,17 @@ Set the backup schedule with CRON_PATTERN (https://linux.die.net/man/5/crontab)
 
 Make sure your TZ variable is set correctly, too. Cron runs in local time.
 
-If you do not specify, the default is every hour, 2 minutes past the hour. The backup file name contains the hour and minute, creating a rolling 24-hour backup archive. Any backup you make manually will also have the same hh-mm time stamp.
+If you do not specify, the default is every hour, 2 minutes past the hour. The backup file name contains the day of the week, hour and minute, creating a rolling hourly 7 day backup archive. Any backup you make manually will also have the same w-hh-mm time stamp in the file name.
+
 ```
 -e CRON_PATTERN="2 * * * *"
 
 ``` 
 
-Run at 2:15 AM every day.
+Run at 3:15 AM every day.
+
 ```
--e CRON_PATTERN="15 2 * * *"
+-e CRON_PATTERN="15 3 * * *"
 
 ```
 
@@ -127,7 +128,7 @@ Run at 2:15 AM every day.
 
 ### Accessing Cacti
 
-* The container takes at least 20 seconds to start up.
+* The container takes about 20 seconds to start up.
 * Browse to...
 
 ```
@@ -135,25 +136,21 @@ http://<your_docker_host>:1984/cacti
 
 ```
 
-
 * Follow the installation wizard.
 * Log in and set your admin password. Default: admin/admin
 * Navigate to Console -> Configuration -> Settings -> Paths
 * Set the Spine Config File Path
 
 ```
-/usr/local/spine/bin/spine.conf
+/usr/local/spine/etc/spine.conf
 
 ```
-
 
 * Save
 * Click the Poller tab
 * Change the Poller Type to spine
 * Set the Maximum Threads per Process, if desired
 * Save
-* Go to Utilities -> System Utilities
-* Run each of Rebuild Poller Cache, Rebuild Resource Cache, Rebuild SNMPAgent Cache
 * Give it at least 10 minutes to start showing data.
 
 ### Getting a shell
