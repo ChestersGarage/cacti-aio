@@ -2,17 +2,22 @@
 
 An all-in-one implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
-## This image is still highly in flux
+## This image is still ~~highly~~ in flux
 
-I'm actively refining, updating and adding major changes to this image, and commonly update it in ways that may cause loss of data.
+I'm still refining, updating and adding features to this image, and may update it in ways that may cause loss of data. Make sure your backups are being written somewhere persistent, if you want to use the image reliably.
 
-My current focus is on solidifying the backup and restore processes, so that there is some sort of path that wont lose data through changes.
+## Versions
+
+Not sure yet how I want to handle versioning.  Right now, I'm just pinning a point across currently available versions, keeping increments small for now. Probably will maintain "latest" and two past versions at most, depending on how fast Cacti revs. 
+
+* latest - Runs the latest Cacti and Spine versions on the latest Alpine Linux, as of the image build time.
+* 0.0.1  - Runs Cacti and Spine 1.1.38 on Alpine Linux 3.8.0 fully updated as of the image build time.
 
 ## Usage
 
 ### My setup
 
-This is how I run this Cacti container.  It sets up all of the configuration and data folders in one place.  I'm running this on my unRAID server, which keeps persistent data on the unRAID cache disk (/mnt/cache).  
+The command below is how I run this Cacti container.  It sets up all of the configuration and data folders in one place.  I'm running this on my unRAID server, which keeps persistent data on the unRAID cache disk (/mnt/cache).
 
 ```
 docker run -d --rm \
