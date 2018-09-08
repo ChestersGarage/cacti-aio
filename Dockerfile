@@ -1,6 +1,6 @@
-FROM alpine:latest
+FROM alpine:3.8
 
-ENV CACTI_VERSION=latest
+ENV CACTI_VERSION=1.1.38
 
 # Install all the things we need to do everything.
 RUN /sbin/apk --no-cache upgrade && \
