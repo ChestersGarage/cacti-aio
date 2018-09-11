@@ -30,7 +30,8 @@ RUN BACKUPDIR="/root/default-configs" && \
 # We start off with the in-distro version, in order to set up dependencies and stuff.
 # Then we download and install the ${CACTI_VERSION} version of cacti on top of that.
 RUN wget https://www.cacti.net/downloads/cacti-${CACTI_VERSION}.tar.gz && \
-	ln -s /usr/share/webapps/cacti /usr/share/webapps/cacti-${CACTI_VERSION} && \
+    PACKAGE_VERSION=$(tar -tf cacti-${CACTI_VERSION}.tar.gz | head -n1 | tr -d /) && \
+	ln -s /usr/share/webapps/cacti /usr/share/webapps/${PACKAGE_VERSION} && \
 	tar -xvf cacti-${CACTI_VERSION}.tar.gz -C /usr/share/webapps && \
 	chown -R cacti:cacti /usr/share/webapps/cacti/ && \
 	chown -R cacti:cacti /var/lib/cacti/ && \
@@ -44,8 +45,9 @@ RUN wget https://www.cacti.net/downloads/cacti-${CACTI_VERSION}.tar.gz && \
 # https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
 RUN cd /var/lib/spine/src && \
 	wget http://www.cacti.net/downloads/spine/cacti-spine-${CACTI_VERSION}.tar.gz && \
+	PACKAGE_VERSION=$(tar -tf cacti-spine-${CACTI_VERSION}.tar.gz | head -n1 | tr -d /) && \
 	tar -zxvf cacti-spine-${CACTI_VERSION}.tar.gz && \
-	cd /var/lib/spine/src/cacti-spine-${CACTI_VERSION}/ && \
+	cd /var/lib/spine/src/${PACKAGE_VERSION}/ && \
 	/usr/bin/aclocal && \
 	/usr/bin/libtoolize --force && \
 	/usr/bin/autoheader && \
