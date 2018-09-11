@@ -11,7 +11,7 @@ I'm still refining, updating and adding features to this image, and may update i
 Not sure yet how I want to handle versioning.  Right now, I'm just pinning a point across currently available versions, keeping increments small for now. Probably will maintain "latest" and two past versions at most, depending on how fast Cacti revs. 
 
 * latest - Runs the latest Cacti and Spine versions on the latest Alpine Linux, as of the image build time.
-* 0.0.1  - Runs Cacti and Spine 1.1.38 on Alpine Linux 3.8, fully updated as of the image build time.
+* 0.0.1 - Runs Cacti and Spine 1.1.38 on Alpine Linux 3.8, fully updated as of the image build time.
 
 ## Usage
 
