@@ -1,8 +1,8 @@
-hddtemp -qdFu F /dev/sd[b|c|d|e|f|g|h|i|j]
+#!/bin/bash
 
-# Run in the context of the container
-hddtemp -qdF ${HDDTEMP_OPTIONS}
+# HDDTemp run script for Docker cli
+# Usage: hddtemp.sh [F|C] [disk device match pattern]
+# Example: hddtemp.sh F /dev/sd[b|c|d|e|f]
 
-# Run in the context of user-based setup in Cacti
-hddtemp -qdFu ${UNIT} ${DISK_LIST}
-Need cacti to aggregate the list of disks into a single string
+
+hddtemp -qdFu $1 $2
