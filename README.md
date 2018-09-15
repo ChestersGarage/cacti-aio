@@ -2,7 +2,9 @@
 
 An all-in-one implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
-## This image is still ~~highly~~ in flux
+I've decided to focus this image on the unRAID server platform.  Due to the local hardware-specific goals of this image, it doesn't make sense to configure it for general usage. I'll build a generally applicable image in the near future, which won't be as rigid in some configurations.
+
+## This image is still in flux
 
 I'm still refining, updating and adding features to this image, and may update it in ways that may cause loss of data. Make sure your data and backups are being written to persistent storage, if you want to use the image reliably.
 
