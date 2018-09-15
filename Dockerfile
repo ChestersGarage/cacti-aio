@@ -91,5 +91,6 @@ ADD init-services /
 ADD backup /
 ADD restore /
 ADD hddtemp.sh /
+ADD hddtemp-cacti.sh /
 
 ENTRYPOINT ["/container-prep"]
