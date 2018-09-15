@@ -21,6 +21,7 @@ export CONTAINERFQDN=$(hostname)
 # It's when we are
 TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
 
+
 # Look for the main httpd.conf
 # If it's missing, the rest doesn't matter and will be moved to bak.
 if [[ ! -f /etc/apache2/httpd.conf ]]
@@ -36,6 +37,13 @@ then
 	# Copy in the defaults
 	cp -rpf ${BACKUPDIR}/apache/* /etc/apache2/
 fi
+
+# Set the Apache listening port
+if [[ ! -z "${OLD_PORT}" ]]
+then
+	sed -i "s|Listen ${OLD_PORT}|Listen 80|" ${BACKUPDIR}/apache/httpd.conf
+fi
+sed -i "s|Listen 80|Listen ${PORT}|" ${BACKUPDIR}/apache/httpd.conf
 
 # Drop the current host name into a config file so Apache doesn't complain about it at startup
 echo "ServerName ${CONTAINERFQDN}" > /etc/apache2/conf.d/fqdn.conf

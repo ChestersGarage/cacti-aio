@@ -74,7 +74,8 @@ RUN cd /tmp && \
 	./configure && \
 	make && \
 	make install && \
-	rm -rf /tmp/hddtemp-0.3-beta15 /tmp/hddtemp-0.3-beta15.tar.bz2
+	rm -rf /tmp/hddtemp-0.3-beta15 /tmp/hddtemp-0.3-beta15.tar.bz2 && \
+	wget -O /usr/share/misc/hddtemp.db http://download.savannah.nongnu.org/releases/hddtemp/hddtemp.db
 
 # Apply a bug fix caused by PHP 7.2
 RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/utility.php && \
