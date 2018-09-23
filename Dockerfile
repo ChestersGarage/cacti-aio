@@ -75,11 +75,15 @@ RUN cd /tmp && \
 	make && \
 	make install && \
 	rm -rf /tmp/hddtemp-0.3-beta15 /tmp/hddtemp-0.3-beta15.tar.bz2 && \
+	mkdir -p /usr/share/misc && \
 	wget -O /usr/share/misc/hddtemp.db http://download.savannah.nongnu.org/releases/hddtemp/hddtemp.db
 
-# Apply a bug fix caused by PHP 7.2
+# Bugs and other anomolies
+# First and second lines: Apply a bug fix caused by PHP 7.2
+# Third line: Busybox ping response looks different that typical *nix ping.
 RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/utility.php && \
-	sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php
+	sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php && \
+	sed -i 's|icmp_\[|[|g' /usr/share/webapps/cacti/scripts/ping.pl
 
 # Make sure all MIBs are active
 RUN echo "mibs +ALL" >> /etc/snmp/snmpd.conf && \
