@@ -99,5 +99,7 @@ ADD Net-SNMP-Memory-Usage.xml /
 ADD Net-SNMP-Load-Average.xml /
 ADD Net-SNMP-CPU-Utilization.xml /
 ADD Unix-Ping-Latency.xml /
+Add Net-SNMP-Available-Disk-Space.xml /
+ADD SNMP-Traffic-BitSec-95th.xml /
 
 ENTRYPOINT ["/container-prep"]
