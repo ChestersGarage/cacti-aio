@@ -98,5 +98,6 @@ ADD unRAID-Server.xml /
 ADD Net-SNMP-Memory-Usage.xml /
 ADD Net-SNMP-Load-Average.xml /
 ADD Net-SNMP-CPU-Utilization.xml /
+ADD Unix-Ping-Latency.xml /
 
 ENTRYPOINT ["/container-prep"]

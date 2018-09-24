@@ -12,10 +12,10 @@ nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
 sleep 3
 
 # Import the custom unRAID device templates
-php /usr/share/webapps/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3
-php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-Memory-Usage.xml --profile-id=3
-php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-CPU-Utilization.xml --profile-id=3
-php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-Load-Average.xml --profile-id=3
+#/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3
+#/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-Memory-Usage.xml --profile-id=3 --remove-orphans
+#/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-CPU-Utilization.xml --profile-id=3 --remove-orphans
+#/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-Load-Average.xml --profile-id=3 --remove-orphans
 
 # Start cron
 # The cacti package installation left a cron file at: /etc/crontabs/cacti

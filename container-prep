@@ -196,9 +196,17 @@ sed -i "s/database_hostname = 'localhost'/database_hostname = '${CONTAINERFQDN}'
 sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/webapps/cacti/include/config.php
 
 # Set some customizations in the startup wizard
-# Add ping latency to the Local Linux Machine device template
 # Set poller and cron intervals to 60 seconds
-sed -i "s|\/\/ Add the correct device type|db_execute(\"INSERT INTO host_template_graph VALUES (3,12)\")\;\n\t\tdb_execute(\"INSERT INTO settings VALUES ('poller_interval',60)\")\;\n\t\tdb_execute(\"INSERT INTO settings VALUES ('cron_interval',60)\")\;\n\t\tdb_execute(\"INSERT INTO settings VALUES ('poller_type',2)\")\;\n\n\t\t\/\/ Add the correct device type|g" /usr/share/webapps/cacti/install/index.php
+sed -i "s|\/\/ Add the correct device type|\
+shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3')\;\n\t\t\
+shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-Memory-Usage.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-CPU-Utilization.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-Load-Average.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+db_execute(\"INSERT INTO settings VALUES ('poller_interval',60)\")\;\n\t\t\
+db_execute(\"INSERT INTO settings VALUES ('cron_interval',60)\")\;\n\t\t\
+db_execute(\"INSERT INTO settings VALUES ('poller_type',2)\")\;\n\n\t\t\
+\/\/ Add the correct device type|g" /usr/share/webapps/cacti/install/index.php
 
 # Set the startup wizard template imports to use the one-minute poller profile
 sed -i "s|\['filename'\], 1|\['filename'\], 3|g" /usr/share/webapps/cacti/install/index.php
