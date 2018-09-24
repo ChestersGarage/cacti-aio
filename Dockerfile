@@ -4,7 +4,7 @@ ENV CACTI_VERSION latest
 
 # Install all the things we need to do everything.
 RUN /sbin/apk --no-cache upgrade && \
-	/sbin/apk --no-cache add openrc apache2 mariadb mariadb-client php7 cacti cacti-php7 vim php7-apache2 net-snmp curl tzdata cacti-setup wget patch gd php7-dom automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man linux-headers
+	/sbin/apk --no-cache add openrc apache2 mariadb mariadb-client php7 cacti cacti-php7 vim php7-apache2 net-snmp curl tzdata cacti-setup wget patch gd php7-dom automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man linux-headers iputils php7-ctype
 
 # Move all the default configs into a backup location,
 # from where they _might_ be restored later in the container startup process
@@ -80,10 +80,8 @@ RUN cd /tmp && \
 
 # Bugs and other anomolies
 # First and second lines: Apply a bug fix caused by PHP 7.2
-# Third line: Busybox ping response looks different that typical *nix ping.
 RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/utility.php && \
-	sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php && \
-	sed -i 's|icmp_\[|[|g' /usr/share/webapps/cacti/scripts/ping.pl
+	sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php
 
 # Make sure all MIBs are active
 RUN echo "mibs +ALL" >> /etc/snmp/snmpd.conf && \
@@ -96,5 +94,6 @@ ADD backup /
 ADD restore /
 ADD hddtemp.sh /
 ADD hddtemp-cacti.sh /
+ADD unRAID-Server.xml /
 
 ENTRYPOINT ["/container-prep"]

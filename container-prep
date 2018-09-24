@@ -132,6 +132,17 @@ EOF
 	mysqladmin -uroot -p${MYSQL} create cacti
 	# Ingest the cacti initialization script
 	mysql -uroot -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
+	# Add one-minute polling RRAs
+	# https://www.tolaris.com/2013/07/09/cacti-and-1-minute-polling/comment-page-1/
+	mysql -uroot -p${MYSQL} cacti <<EOF
+INSERT INTO data_source_profiles VALUES (3,'48f01ca42a88cfc169d019312cb6f70f','One-Minute Polling',60,120,0.5,'');
+INSERT INTO data_source_profiles_cf VALUES (3,1),(3,2),(3,3),(3,4);
+INSERT INTO data_source_profiles_rra VALUES (9,3,'Hourly @ 1 min',1,10080,3600);
+INSERT INTO data_source_profiles_rra VALUES (10,3,'Daily @ 1 min',5,8640,86400);
+INSERT INTO data_source_profiles_rra VALUES (11,3,'Weekly @ 1 min',30,4320,604800);
+INSERT INTO data_source_profiles_rra VALUES (12,3,'Monthly @ 1 min',120,2160,2618784);
+INSERT INTO data_source_profiles_rra VALUES (13,3,'Yearly @ 1 min',1440,1461,31536000);
+EOF
 else
 	# With exising data, just start the database so we can set up user access.
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
@@ -178,23 +189,30 @@ DB_Pass ${CACTI}
 DB_Port 3306
 EOF
 
-# These don't work, but I'm keeping them here as a reminder to figure out a way to make them work.
-# The problem is these are set prior to cacti's first-run process, which overwrites them.
-# I could force these in a cron job, but it would lock out recovery other than killing the container.
-#echo "INSERT INTO cacti.settings VALUES ("path_spine","/usr/local/spine/bin/spine");" | mysql -uroot -p${MYSQL}
-#echo "INSERT INTO cacti.settings VALUES ("path_spine_config","/usr/local/spine/etc/spine.conf");" | mysql -uroot -p${MYSQL}
-#echo "UPDATE cacti.settings SET value = "2" WHERE settings.name = 'poller_type';" | mysql -uroot -p${MYSQL}
-
 # Set the DB info for cacti.
 # Many characters can disrupt this.
 # Avoid & and ! and possibly others in passwords.
 sed -i "s/database_hostname = 'localhost'/database_hostname = '${CONTAINERFQDN}'/" /usr/share/webapps/cacti/include/config.php
 sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/webapps/cacti/include/config.php
 
-# This gets reset to root:root for some reason, so I set it back.
-# Probably caused by host permissions. (to-do)
-chown -R cacti:cacti /var/lib/cacti/rra
-chown -R mysql:mysql /var/lib/mysql
+# Set some customizations in the startup wizard
+# Add ping latency to the Local Linux Machine device template
+# Set poller and cron intervals to 60 seconds
+sed -i "s|\/\/ Add the correct device type|db_execute(\"INSERT INTO host_template_graph VALUES (3,12)\")\;\n\t\tdb_execute(\"INSERT INTO settings VALUES ('poller_interval',60)\")\;\n\t\tdb_execute(\"INSERT INTO settings VALUES ('cron_interval',60)\")\;\n\t\tdb_execute(\"INSERT INTO settings VALUES ('poller_type',2)\")\;\n\n\t\t\/\/ Add the correct device type|g" /usr/share/webapps/cacti/install/index.php
+
+# Set the startup wizard template imports to use the one-minute poller profile
+sed -i "s|\['filename'\], 1|\['filename'\], 3|g" /usr/share/webapps/cacti/install/index.php
+
+# Set the startup wizard to use the My unRAID Server template instead of the default Local Linux Machine template
+SNMP_COMMUNITY=${SNMP_COMMUNITY:-public}
+sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '66c529629d5962a81f6780f81c6a75ec'|g" /usr/share/webapps/cacti/install/index.php
+sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|g" /usr/share/webapps/cacti/install/index.php
+sed -i "s|description  = \"Local Linux Machine\"|description  = \"unRAID Server\"|g" /usr/share/webapps/cacti/install/index.php
+sed -i "s|version      = 0|version      = 2|g" /usr/share/webapps/cacti/install/index.php
+sed -i "s|avail        = 'none'|avail        = 'snmp'|g" /usr/share/webapps/cacti/install/index.php
+
+# Set the cacti poller cron job to one minute
+echo "* * * * * php /usr/share/webapps/cacti/poller.php >/dev/null 2>&1" > /etc/crontabs/cacti
 
 # Set the default backup schedule, if not provided
 CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
@@ -204,6 +222,11 @@ echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 echo "export BACKUPS=${BACKUPS}" >> /root/.bashrc
 # I use ll all the time.
 echo "alias ll='ls -l'" >> /root/.bashrc
+
+# This gets reset to root:root for some reason, so I set it back.
+# Probably caused by host permissions. (to-do)
+chown -R cacti:cacti /var/lib/cacti/rra
+chown -R mysql:mysql /var/lib/mysql
 
 # Now start all the services.
 /init-services
