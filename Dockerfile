@@ -95,5 +95,8 @@ ADD restore /
 ADD hddtemp.sh /
 ADD hddtemp-cacti.sh /
 ADD unRAID-Server.xml /
+ADD Net-SNMP-Memory-Usage.xml /
+ADD Net-SNMP-Load-Average.xml /
+ADD Net-SNMP-CPU-Utilization.xml /
 
 ENTRYPOINT ["/container-prep"]
