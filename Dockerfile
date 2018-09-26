@@ -8,7 +8,7 @@ RUN /sbin/apk --no-cache upgrade && \
 
 # Move all the default configs into a backup location,
 # from where they _might_ be restored later in the container startup process
-# Startup scripts check for existing resources and copy in defauts if none are found or recognized
+# Init script checks for existing resources and copy in defauts if none are found or recognized
 RUN BACKUPDIR="/root/default-configs" && \
 	mkdir -p ${BACKUPDIR}/mysql && \
 	mv /etc/mysql/my.cnf ${BACKUPDIR}/mysql/ && \
@@ -32,14 +32,12 @@ RUN cd /tmp && \
 	ln -s /usr/share/webapps/cacti /usr/share/webapps/${PACKAGE_VERSION} && \
 	tar -xvf cacti-${CACTI_VERSION}.tar.gz -C /usr/share/webapps && \
 	mkdir -p /usr/share/webapps/cacti/log && \
-	touch /usr/share/webapps/cacti/log/cacti.log && \
 	ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti && \
 	chown -R cacti:cacti /usr/share/webapps/cacti/ && \
 	chown -R cacti:cacti /var/lib/cacti/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/cache/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/resource/ && \
 	chown -R apache:apache /usr/share/webapps/cacti/scripts/ && \
-	chown -R apache:apache /var/log/cacti/ && \
 	rm -f /tmp/cacti-${CACTI_VERSION}.tar.gz
 
 # Download and install spine.
