@@ -90,4 +90,4 @@ RUN echo "mibs +ALL" >> /etc/snmp/snmpd.conf && \
 # Add our stuff
 ADD bin cacti-templates /
 
-ENTRYPOINT ["/container-prep"]
+ENTRYPOINT ["/init"]
