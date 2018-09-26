@@ -31,6 +31,8 @@ docker run -d --rm \
 -v '/mnt/cache/appdata/Cacti/cacti-data':'/var/lib/cacti/rra':'rw' \
 -v '/mnt/cache/appdata/Cacti/apache-conf':'/etc/apache2':'rw' \
 -v '/mnt/cache/appdata/Cacti/php-conf':'/etc/php7':'rw' \
+-v '/mnt/cache/appdata/Cacti/logs':'/var/log':'rw' \
+-e UNRAID_HOST='<unraid hostname or ip address>'
 -e TZ="America/Los_Angeles" \
 -e MYSQL='<mysql_root_password>' \
 --name Cacti \
@@ -64,7 +66,7 @@ The bridged network connection maps TCP port 80 from the container and exposes i
 ```
 
 
-These are all the various places we might need to keep or control data and configurations outside of the container. You don't need to mount all of these volumes in your implementation. The image will install the default configurations anywhere you do not provide your own data. But only the volumes you create here will maintain persistent data. Make sure you at least mount /var/lib/mysql, /var/lib/cacti/rra, and /var/backups.  The default configs should run reasonably well up to a few hundred monitored hosts, depending on the cpu resources available.
+These are all the various places we might need to keep or control data and configurations outside of the container. You don't need to mount all of these volumes in your implementation. The image will install the default configurations anywhere you do not provide your own data. But only the volumes you create here will maintain persistent data. Make sure you at least mount /var/lib/mysql, /var/lib/cacti/rra, /var/log and /var/backups.
 
 ```
 -v '/mnt/cache/appdata/Cacti/backups':'/var/backups':'rw' \
@@ -73,6 +75,16 @@ These are all the various places we might need to keep or control data and confi
 -v '/mnt/cache/appdata/Cacti/cacti-data':'/var/lib/cacti/rra':'rw' \
 -v '/mnt/cache/appdata/Cacti/apache-conf':'/etc/apache2':'rw' \
 -v '/mnt/cache/appdata/Cacti/php-conf':'/etc/php7':'rw' \
+-v '/mnt/cache/appdata/Cacti/logs':'/var/log':'rw' \
+
+```
+
+
+Some variables we need for Cacti to set up all the default graphs:
+
+```
+-e UNRAID_HOST='<unraid hostname or ip address>'
+-e 
 
 ```
 
