@@ -88,18 +88,6 @@ RUN echo "mibs +ALL" >> /etc/snmp/snmpd.conf && \
     echo "mibs +ALL" >> /etc/snmp/snmp.conf
 
 # Add our stuff
-ADD container-prep /
-ADD init-services /
-ADD backup /
-ADD restore /
-ADD hddtemp.sh /
-ADD hddtemp-cacti.sh /
-ADD unRAID-Server.xml /
-ADD Net-SNMP-Memory-Usage.xml /
-ADD Net-SNMP-Load-Average.xml /
-ADD Net-SNMP-CPU-Utilization.xml /
-ADD Unix-Ping-Latency.xml /
-Add Net-SNMP-Available-Disk-Space.xml /
-ADD SNMP-Traffic-BitSec-95th.xml /
+ADD resources/* /
 
 ENTRYPOINT ["/container-prep"]
