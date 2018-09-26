@@ -88,6 +88,6 @@ RUN echo "mibs +ALL" >> /etc/snmp/snmpd.conf && \
     echo "mibs +ALL" >> /etc/snmp/snmp.conf
 
 # Add our stuff
-ADD resources/* /
+ADD bin cacti-templates /
 
 ENTRYPOINT ["/container-prep"]

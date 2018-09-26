@@ -149,13 +149,13 @@ EOF
 	# Set poller and cron intervals to 60 seconds
 	# Set poller to spine
 	sed -i "s|\/\/ Add the correct device type|\
-	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/templates/unRAID-Server.xml --profile-id=3')\;\n\t\t\
-	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/templates/Net-SNMP-Memory-Usage.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/templates/Net-SNMP-CPU-Utilization.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/templates/Net-SNMP-Load-Average.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/templates/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/templates/Net-SNMP-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/templates/SNMP-Traffic-BitSec-95th.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3')\;\n\t\t\
+	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-Memory-Usage.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-CPU-Utilization.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-Load-Average.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/Net-SNMP-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+	shell_exec('/usr/bin/php /usr/share/webapps/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec-95th.xml --profile-id=3 --remove-orphans')\;\n\t\t\
 	db_execute(\"INSERT INTO settings VALUES ('poller_interval',60)\")\;\n\t\t\
 	db_execute(\"INSERT INTO settings VALUES ('cron_interval',60)\")\;\n\t\t\
 	db_execute(\"INSERT INTO settings VALUES ('poller_type',2)\")\;\n\n\t\t\
