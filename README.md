@@ -2,9 +2,9 @@
 
 An all-in-one implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
-## This image is still ~~highly~~ in flux
+## WARNING: I may need to deprecate this image (stay tuned)
 
-I'm still refining, updating and adding features to this image, and may update it in ways that may cause loss of data. Make sure your data and backups are being written to persistent storage, if you want to use the image reliably.
+I ran into a bug in PHP 7.2 that comes in the Alpine Linux distro, which I have not been able to fix. And things are even worse if I use PHP 5.x in Alpine.  However, that bug is not present in my new image that uses CentOS 7.  I'm hoping I can resolve the bug in Alpine, because the CentOS image is flipping massive (1.6 GB), compared to this image based on Alpine (525 MB)!
 
 ## Versions
 
