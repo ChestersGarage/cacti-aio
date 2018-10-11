@@ -4,7 +4,7 @@ An all-in-one implementation of the Cacti (https://www.cacti.net) network monito
 
 ## WARNING: I may need to deprecate this image (stay tuned)
 
-I ran into a bug in PHP 7.2 that comes in the Alpine Linux distro, which I have not been able to fix. And things are even worse if I use PHP 5.x in Alpine.  However, that bug is not present in my new image that uses CentOS 7.  I'm hoping I can resolve the bug in Alpine, because the CentOS image is flipping massive (1.6 GB), compared to this image based on Alpine (525 MB)!
+I ran into a bug related to PHP 7.2 that comes in the Alpine Linux distro, which I have not been able to fix. And things are even worse if I use PHP 5.x in Alpine.  However, that bug is not present in my new image that uses CentOS 7.  I'm hoping I can resolve the bug in Alpine, because the CentOS image is flipping massive (1.6 GB), compared to this image based on Alpine (525 MB)!
 
 ## Versions
 
