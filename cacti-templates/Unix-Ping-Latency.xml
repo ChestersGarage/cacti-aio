@@ -5,7 +5,7 @@
 			<t_title></t_title>
 			<title>|host_description| - Ping Latency</title>
 			<t_vertical_label></t_vertical_label>
-			<vertical_label>milliseconds</vertical_label>
+			<vertical_label>Milliseconds</vertical_label>
 			<t_image_format_id></t_image_format_id>
 			<image_format_id>1</image_format_id>
 			<t_height></t_height>
@@ -15,7 +15,7 @@
 			<t_base_value></t_base_value>
 			<base_value>1000</base_value>
 			<t_slope_mode></t_slope_mode>
-			<slope_mode>on</slope_mode>
+			<slope_mode></slope_mode>
 			<t_auto_scale></t_auto_scale>
 			<auto_scale>on</auto_scale>
 			<t_auto_scale_opts></t_auto_scale_opts>

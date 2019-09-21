@@ -1,0 +1,69 @@
+FROM centos:7
+
+ENV CACTI_VERSION latest
+
+# Install all the things we need to do everything.
+ADD files/mariadb.repo /etc/yum.repos.d/
+RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
+    yum install -y mariadb mysql mariadb-server automake libtool make which net-snmp-devel mariadb-devel help2man php cacti hddtemp dos2unix wget && \
+    yum -y update && \
+    yum clean all && \
+    rm -rf /var/cache/yum
+
+# Move all the default configs into a backup location,
+# from where they _might_ be restored later in the container startup process
+# Init script checks for existing resources and copy in defaults if none are found or recognized
+RUN BACKUPDIR="/root/default-configs" && \
+    mkdir -p ${BACKUPDIR}/mysql && \
+    mv /etc/my.cnf ${BACKUPDIR}/mysql/ && \
+    mkdir -p ${BACKUPDIR}/httpd && \
+    mv /etc/httpd/* ${BACKUPDIR}/httpd/ && \
+    mkdir ${BACKUPDIR}/php && \
+    mv /etc/php* ${BACKUPDIR}/php/ && \
+    sed -i "s|Require host localhost|Require all granted|" ${BACKUPDIR}/httpd/conf.d/cacti.conf
+
+# Misc
+RUN mkdir -p /var/backups
+
+# We have to download the Cacti package just to get the cacti.sql file,
+# because the Cacti package from EPEL is missing it.
+RUN cd /tmp && \
+    wget https://www.cacti.net/downloads/cacti-${CACTI_VERSION}.tar.gz && \
+    PACKAGE_VERSION=$(tar -tf cacti-${CACTI_VERSION}.tar.gz | head -n1 | tr -d /) && \
+    tar -xvf cacti-${CACTI_VERSION}.tar.gz && \
+    cp ${PACKAGE_VERSION}/cacti.sql /usr/share/cacti/cacti.sql && \
+    rm -rf /tmp/cacti-${CACTI_VERSION}.tar.gz /tmp/${PACKAGE_VERSION}
+
+# Download and install spine.
+# https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
+RUN cd /tmp && \
+    ln -s /usr/lib64/libmysqlclient.so.16.0.0 /usr/lib64/libmysqlclient.so && \
+    wget https://www.cacti.net/downloads/spine/cacti-spine-${CACTI_VERSION}.tar.gz && \
+    PACKAGE_VERSION=$(tar -tf cacti-spine-${CACTI_VERSION}.tar.gz | head -n1 | tr -d /) && \
+    tar -zxvf cacti-spine-${CACTI_VERSION}.tar.gz && \
+    cd ${PACKAGE_VERSION}/ && \
+    ./bootstrap && \
+    ./configure && \
+    /usr/bin/make && \
+    /usr/bin/make install && \
+    /bin/chown root:root /usr/local/spine/bin/spine && \
+    /bin/chmod +s /usr/local/spine/bin/spine && \
+    rm -rf /tmp/cacti-spine-${CACTI_VERSION}.tar.gz /tmp/cacti-spine-${CACTI_VERSION}
+
+# Download and install hddtemp
+# https://wiki.archlinux.org/index.php/Hddtemp
+# https://www.cyberciti.biz/tips/howto-monitor-hard-drive-temperature.html
+RUN wget -O /usr/share/misc/hddtemp.db http://download.savannah.nongnu.org/releases/hddtemp/hddtemp.db
+
+# Set up MIBs
+RUN mkdir -p /usr/share/snmp/mibs && \
+    echo "mibs +ALL" >> /etc/snmp/snmpd.conf && \
+    echo "mibs +ALL" >> /etc/snmp/snmp.conf
+ADD snmp-mibs.tgz /usr/share/snmp/mibs/
+ADD snmp-mibs2.tgz /usr/share/snmp/mibs/
+
+# Add our stuff
+ADD bin /
+ADD cacti-templates /
+
+ENTRYPOINT ["/init.centos7"]

@@ -1,11 +1,11 @@
 <cacti>	
-	<hash_0001014d2bdea3c52db05896b0d9323076613d>
-		<name>Net-SNMP - Interrupts</name>
+	<hash_000101a9a2ce15df48242361bea33f786de6ee>
+		<name>Net-SNMP - Context Switches</name>
 		<graph>
 			<t_title></t_title>
-			<title>|host_description| - Interrupts</title>
+			<title>|host_description| - Context Switches</title>
 			<t_vertical_label></t_vertical_label>
-			<vertical_label>Interrupts</vertical_label>
+			<vertical_label>Context Switches</vertical_label>
 			<t_image_format_id></t_image_format_id>
 			<image_format_id>1</image_format_id>
 			<t_height></t_height>
@@ -47,9 +47,9 @@
 			<t_right_axis_format></t_right_axis_format>
 			<right_axis_format>0</right_axis_format>
 			<t_right_axis_formatter></t_right_axis_formatter>
-			<right_axis_formatter></right_axis_formatter>
+			<right_axis_formatter>0</right_axis_formatter>
 			<t_left_axis_formatter></t_left_axis_formatter>
-			<left_axis_formatter></left_axis_formatter>
+			<left_axis_formatter>0</left_axis_formatter>
 			<t_auto_padding></t_auto_padding>
 			<auto_padding>on</auto_padding>
 			<t_dynamic_labels></t_dynamic_labels>
@@ -59,15 +59,15 @@
 			<t_tab_width></t_tab_width>
 			<tab_width></tab_width>
 			<t_legend_position></t_legend_position>
-			<legend_position></legend_position>
+			<legend_position>0</legend_position>
 			<t_legend_direction></t_legend_direction>
-			<legend_direction></legend_direction>
+			<legend_direction>0</legend_direction>
 		</graph>
 		<items>
-			<hash_100101857bb546882bc5049e673c4188cdda8b>
+			<hash_1001010b502e0b5d0228d17d3c30f5a04c7083>
 				<graph_type_id>4</graph_type_id>
-				<task_item_id>hash_0801016f3c1f1706df1e20976bd5d616f63d1d</task_item_id>
-				<color_id>F87217</color_id>
+				<task_item_id>hash_0801014faab1acdeb03e2bad23d3b80cf9455f</task_item_id>
+				<color_id>6557D0</color_id>
 				<alpha>FF</alpha>
 				<consolidation_function_id>1</consolidation_function_id>
 				<cdef_id>0</cdef_id>
@@ -82,11 +82,11 @@
 				<dashes></dashes>
 				<dash_offset>0</dash_offset>
 				<sequence>1</sequence>
-			</hash_100101857bb546882bc5049e673c4188cdda8b>
-			<hash_100101e7261d3093976dbe63de4937296a9a96>
+			</hash_1001010b502e0b5d0228d17d3c30f5a04c7083>
+			<hash_10010164c92d07fe3877e99dcc3b570ee90966>
 				<graph_type_id>7</graph_type_id>
-				<task_item_id>hash_0801016f3c1f1706df1e20976bd5d616f63d1d</task_item_id>
-				<color_id>F87217</color_id>
+				<task_item_id>hash_0801014faab1acdeb03e2bad23d3b80cf9455f</task_item_id>
+				<color_id>6557D0</color_id>
 				<alpha>7F</alpha>
 				<consolidation_function_id>1</consolidation_function_id>
 				<cdef_id>0</cdef_id>
@@ -95,16 +95,16 @@
 				<value></value>
 				<gprint_id>hash_060101e9c43831e54eca8069317a2ce8c6f751</gprint_id>
 				<textalign></textalign>
-				<text_format>Interrupts:</text_format>
+				<text_format>Context Switches:</text_format>
 				<hard_return></hard_return>
 				<line_width>0.00</line_width>
 				<dashes></dashes>
 				<dash_offset>0</dash_offset>
 				<sequence>2</sequence>
-			</hash_100101e7261d3093976dbe63de4937296a9a96>
-			<hash_100101959854c407cfa371240c0744d44618a6>
+			</hash_10010164c92d07fe3877e99dcc3b570ee90966>
+			<hash_10010172c6b8ab332e09e2894f18bcf5ba92fe>
 				<graph_type_id>9</graph_type_id>
-				<task_item_id>hash_0801016f3c1f1706df1e20976bd5d616f63d1d</task_item_id>
+				<task_item_id>hash_0801014faab1acdeb03e2bad23d3b80cf9455f</task_item_id>
 				<color_id>0</color_id>
 				<alpha>FF</alpha>
 				<consolidation_function_id>4</consolidation_function_id>
@@ -120,10 +120,10 @@
 				<dashes></dashes>
 				<dash_offset>0</dash_offset>
 				<sequence>3</sequence>
-			</hash_100101959854c407cfa371240c0744d44618a6>
-			<hash_1001011fbdf8aef7acfbc90ba7d24b6644e432>
+			</hash_10010172c6b8ab332e09e2894f18bcf5ba92fe>
+			<hash_10010137f9956018cb4615de77aec4695fbb0c>
 				<graph_type_id>9</graph_type_id>
-				<task_item_id>hash_0801016f3c1f1706df1e20976bd5d616f63d1d</task_item_id>
+				<task_item_id>hash_0801014faab1acdeb03e2bad23d3b80cf9455f</task_item_id>
 				<color_id>0</color_id>
 				<alpha>FF</alpha>
 				<consolidation_function_id>1</consolidation_function_id>
@@ -139,10 +139,10 @@
 				<dashes></dashes>
 				<dash_offset>0</dash_offset>
 				<sequence>4</sequence>
-			</hash_1001011fbdf8aef7acfbc90ba7d24b6644e432>
-			<hash_1001012df153e12b5db6ae3dea51df70f73651>
+			</hash_10010137f9956018cb4615de77aec4695fbb0c>
+			<hash_1001011d7fe63be7b044229b79b6203298e506>
 				<graph_type_id>9</graph_type_id>
-				<task_item_id>hash_0801016f3c1f1706df1e20976bd5d616f63d1d</task_item_id>
+				<task_item_id>hash_0801014faab1acdeb03e2bad23d3b80cf9455f</task_item_id>
 				<color_id>0</color_id>
 				<alpha>FF</alpha>
 				<consolidation_function_id>3</consolidation_function_id>
@@ -158,22 +158,22 @@
 				<dashes></dashes>
 				<dash_offset>0</dash_offset>
 				<sequence>5</sequence>
-			</hash_1001012df153e12b5db6ae3dea51df70f73651>
+			</hash_1001011d7fe63be7b044229b79b6203298e506>
 		</items>
 		<inputs>
-			<hash_090101e147ef9f5bc72229fe46508904d1e820>
-				<name>Data Source [ssSysInterrupts]</name>
+			<hash_090101d57f74ec1b11fc2037d197417c7f187d>
+				<name>Data Source [ssSysContext]</name>
 				<description></description>
 				<column_name>task_item_id</column_name>
-				<items>hash_000101857bb546882bc5049e673c4188cdda8b|hash_000101e7261d3093976dbe63de4937296a9a96|hash_000101959854c407cfa371240c0744d44618a6|hash_0001011fbdf8aef7acfbc90ba7d24b6644e432|hash_0001012df153e12b5db6ae3dea51df70f73651</items>
-			</hash_090101e147ef9f5bc72229fe46508904d1e820>
+				<items>hash_0001010b502e0b5d0228d17d3c30f5a04c7083|hash_00010164c92d07fe3877e99dcc3b570ee90966|hash_00010172c6b8ab332e09e2894f18bcf5ba92fe|hash_00010137f9956018cb4615de77aec4695fbb0c|hash_0001011d7fe63be7b044229b79b6203298e506</items>
+			</hash_090101d57f74ec1b11fc2037d197417c7f187d>
 		</inputs>
-	</hash_0001014d2bdea3c52db05896b0d9323076613d>
-	<hash_0101015cd3c67ceec2e04bd4f9173b79ddbc3c>
-		<name>Net-SNMP - Interrupts</name>
+	</hash_000101a9a2ce15df48242361bea33f786de6ee>
+	<hash_010101430e64b44e8c906747d00d8390011cc2>
+		<name>Net-SNMP - Context Switches</name>
 		<ds>
 			<t_name></t_name>
-			<name>|host_description| - Interrupts</name>
+			<name>|host_description| - Context Switches</name>
 			<data_source_path></data_source_path>
 			<data_input_id>hash_0301013eb92bb845b9660a7445cf9740726522</data_input_id>
 			<t_data_source_profile_id></t_data_source_profile_id>
@@ -184,9 +184,9 @@
 			<active>on</active>
 		</ds>
 		<items>
-			<hash_0801016f3c1f1706df1e20976bd5d616f63d1d>
+			<hash_0801014faab1acdeb03e2bad23d3b80cf9455f>
 				<t_data_source_name></t_data_source_name>
-				<data_source_name>ssSysInterrupts</data_source_name>
+				<data_source_name>ssSysContext</data_source_name>
 				<t_rrd_minimum></t_rrd_minimum>
 				<rrd_minimum>0</rrd_minimum>
 				<t_rrd_maximum></t_rrd_maximum>
@@ -197,7 +197,7 @@
 				<rrd_heartbeat>120</rrd_heartbeat>
 				<t_data_input_field_id></t_data_input_field_id>
 				<data_input_field_id>0</data_input_field_id>
-			</hash_0801016f3c1f1706df1e20976bd5d616f63d1d>
+			</hash_0801014faab1acdeb03e2bad23d3b80cf9455f>
 		</items>
 		<data>
 			<item_000>
@@ -228,7 +228,7 @@
 			<item_005>
 				<data_input_field_id>hash_0701014276a5ec6e3fe33995129041b1909762</data_input_field_id>
 				<t_value></t_value>
-				<value>.1.3.6.1.4.1.2021.11.7.0</value>
+				<value>.1.3.6.1.4.1.2021.11.8.0</value>
 			</item_005>
 			<item_006>
 				<data_input_field_id>hash_070101fc64b99742ec417cc424dbf8c7692d36</data_input_field_id>
@@ -251,7 +251,7 @@
 				<value></value>
 			</item_009>
 		</data>
-	</hash_0101015cd3c67ceec2e04bd4f9173b79ddbc3c>
+	</hash_010101430e64b44e8c906747d00d8390011cc2>
 	<hash_0301013eb92bb845b9660a7445cf9740726522>
 		<name>Get SNMP Data</name>
 		<type_id>2</type_id>

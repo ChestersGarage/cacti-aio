@@ -6,7 +6,7 @@
 
 if [[ $1 == "F" ]] || [[ $1 == "C" ]]
 then
-	hddtemp -qdF -u $1 $2
+	hddtemp -qF -u $1 $2
 else
-	hddtemp -qdF $1
+	hddtemp -qF $1
 fi

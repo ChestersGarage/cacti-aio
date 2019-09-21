@@ -1,4 +1,5 @@
 #!/bin/bash -x
+
 # Check for passwords at container startup
 # Fail to start the container if not provided
 if [[ -z "$MYSQL" ]]
@@ -17,7 +18,7 @@ export BACKUPS=$(base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 27 | head -n
 BACKUPDIR="/root/default-configs"
 
 # It's who we are
-export CACTI_FQDN=$(hostname)
+export CACTI_FQDN=${CACTI_FQDN:-$(hostname)}
 # It's when we are
 TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
 
@@ -27,59 +28,59 @@ ln -s /usr/share/zoneinfo/${TZ} /etc/localtime
 
 # Look for the main httpd.conf
 # If it's missing, the rest doesn't matter and will be moved to bak.
-if [[ ! -f /etc/apache2/httpd.conf ]]
+if [[ ! -f /etc/httpd/conf/httpd.conf ]]
 then
 	# We don't want anything else that might be in there either
-	mkdir -p /etc/apache2/bak/${TIMESTAMP}
-	cd /etc/apache2
+	mkdir -p /etc/httpd/bak/${TIMESTAMP}
+	cd /etc/httpd
 	EXISTING_DATA=$(ls -1 | grep -v bak)
 	if [[ ! -z ${EXISTING_DATA} ]]
 	then
-        mv ${EXISTING_DATA} /etc/apache2/bak/${TIMESTAMP}/
+        mv ${EXISTING_DATA} /etc/httpd/bak/${TIMESTAMP}/
 	fi
 	# Copy in the defaults
-	cp -rpf ${BACKUPDIR}/apache/* /etc/apache2/
+	cp -rpf ${BACKUPDIR}/httpd/* /etc/httpd/
 fi
 
 # Set the Apache listening port
 if [[ ! -z "${OLD_PORT}" ]]
 then
-	sed -i "s|Listen ${OLD_PORT}|Listen 80|" ${BACKUPDIR}/apache/httpd.conf
+	sed -i "s|Listen ${OLD_PORT}|Listen 80|" ${BACKUPDIR}/httpd/conf/httpd.conf
 fi
-sed -i "s|Listen 80|Listen ${PORT}|" ${BACKUPDIR}/apache/httpd.conf
+sed -i "s|Listen 80|Listen ${PORT}|" ${BACKUPDIR}/httpd/conf/httpd.conf
 
 # Drop the current host name into a config file so Apache doesn't complain about it at startup
-echo "ServerName ${CACTI_FQDN}" > /etc/apache2/conf.d/fqdn.conf
+echo "ServerName ${CACTI_FQDN}" > /etc/httpd/conf.d/fqdn.conf
 
 # Look for the main php.ini file
 # If it's missing, the rest doesn't matter and will be moved to bak.
-if [[ ! -f /etc/php7/php.ini ]]
+if [[ ! -f /etc/php.ini ]]
 then
-	mkdir -p /etc/php7/bak/${TIMESTAMP}
-	cd /etc/php7
-	EXISTING_DATA=$(ls -1 | grep -v bak)
+	mkdir -p /etc/bak/${TIMESTAMP}
+	cd /etc/
+	EXISTING_DATA=$(ls -1 | grep php)
 	if [[ ! -z ${EXISTING_DATA} ]]
 	then
-        mv -f ${EXISTING_DATA} /etc/php7/bak/${TIMESTAMP}/
+        mv -f ${EXISTING_DATA} /etc/bak/${TIMESTAMP}/
     fi
-	sed -i "s|\;date.timezone =|date.timezone = \"${TZ}\"|" ${BACKUPDIR}/php7/php.ini
-	cp -rpf ${BACKUPDIR}/php7/* /etc/php7/
+	sed -i "s|\;date.timezone =|date.timezone = '${TZ}'|" ${BACKUPDIR}/php/php.ini
+	cp -rpf ${BACKUPDIR}/php/* /etc/
 fi
 
 # Look for main my.cnf file
 # If it's mising, the rest doesn't matter
 # Everything else will be moved to bak.
-if [[ ! -f /etc/mysql/my.cnf ]]
+if [[ ! -f /etc/my.cnf ]]
 then
-	mkdir -p /etc/mysql/bak/${TIMESTAMP}
-	cd /etc/mysql
-	EXISTING_DATA=$(ls -1 | grep -v bak)
+	mkdir -p /etc/bak/${TIMESTAMP}
+	cd /etc
+	EXISTING_DATA=$(ls -1 | grep my)
 	if [[ ! -z ${EXISTING_DATA} ]]
 	then
-    	mv ${EXISTING_DATA} /etc/mysql/bak/${TIMESTAMP}/
+    	mv ${EXISTING_DATA} /etc/bak/${TIMESTAMP}/
 	fi
 	# Then set our config
-	cat > /etc/mysql/my.cnf <<EOF
+	cat > /etc/my.cnf <<EOF
 [mysqld]
 collation_server = utf8mb4_unicode_ci
 character_set_server = utf8mb4
@@ -95,6 +96,9 @@ innodb_write_io_threads = 16
 innodb_flush_log_at_trx_commit = 2
 innodb_flush_log_at_timeout = 3
 EOF
+
+#innodb_additional_mem_pool_size = 96M
+
 fi
 
 # Check for the presence of a cacti database folder in the mysql data
@@ -130,7 +134,7 @@ EOF
 	# Ingest timezone data from the O/S
 	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
 	# Set the current timezone for MySQL
-	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
+	echo "default_time_zone = $TZ" >> /etc/my.cnf
 	# Refresh the running MySQL server
 	mysqladmin -uroot -p${MYSQL} shutdown
 	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
@@ -138,7 +142,7 @@ EOF
 	# Create the cacti database
 	mysqladmin -uroot -p${MYSQL} create cacti
 	# Ingest the cacti initialization script
-	mysql -uroot -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
+	mysql -uroot -p${MYSQL} cacti < /usr/share/cacti/cacti.sql
 	# Add one-minute polling RRAs
 	# https://www.tolaris.com/2013/07/09/cacti-and-1-minute-polling/comment-page-1/
 	# Add the default admin user's startup preferences
@@ -188,19 +192,20 @@ db_execute(\"INSERT INTO settings VALUES ('path_spine_config','/usr/local/spine/
 \/\/ Add the correct device type|g" /usr/share/cacti/install/index.php
 
 	# Set the startup wizard template imports to use the one-minute poller profile
-	sed -i "s|\['filename'\], 1|\['filename'\], 3|g" /usr/share/webapps/cacti/install/index.php
+	sed -i "s|\['filename'\], 1|\['filename'\], 3|g" /usr/share/cacti/install/index.php
 
 	# Set the startup wizard to use the My unRAID Server template instead of the default Local Linux Machine template
 	# Allow setting the community string
 	SNMP_COMMUNITY=${SNMP_COMMUNITY:-public}
-	sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '788bb9d0eaf8c99cd581e544641f5808'|g" /usr/share/webapps/cacti/install/index.php
-	sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|g" /usr/share/webapps/cacti/install/index.php
-	sed -i "s|description  = \"Local Linux Machine\"|description  = \"unRAID Server\"|g" /usr/share/webapps/cacti/install/index.php
-	sed -i "s|version      = 0|version      = 2|g" /usr/share/webapps/cacti/install/index.php
-	sed -i "s|avail        = 'none'|avail        = 'snmp'|g" /usr/share/webapps/cacti/install/index.php
+	sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '788bb9d0eaf8c99cd581e544641f5808'|g" /usr/share/cacti/install/index.php
+	sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|g" /usr/share/cacti/install/index.php
+	sed -i "s|description  = \"Local Linux Machine\"|description  = \"unRAID Server\"|g" /usr/share/cacti/install/index.php
+	sed -i "s|version      = 0|version      = 2|g" /usr/share/cacti/install/index.php
+	sed -i "s|avail        = 'none'|avail        = 'snmp'|g" /usr/share/cacti/install/index.php
 
 	# Set the cacti poller cron job to one minute
-	echo "* * * * * php /usr/share/webapps/cacti/poller.php >/dev/null 2>&1" > /etc/crontabs/cacti
+	rm -f /etc/cron.d/cacti
+	echo "* * * * * cacti php /usr/share/cacti/poller.php >/dev/null 2>&1" >> /etc/crontab
 
 else
 	# With exising data, just start the database so we can set up non-root user access.
@@ -213,7 +218,7 @@ echo "exit" | mysql -uroot -p${MYSQL}
 if [[ "$?" != "0" ]]
 then
 	echo "Cannot connect to MySQL with the provided root password."
-	exit 1
+	#exit 1
 fi
 
 # Set up cacti application access to the database
@@ -229,11 +234,12 @@ GRANT ALL ON cacti.* TO 'cactiuser'@'${CACTI_FQDN}' IDENTIFIED BY '${CACTI}';
 GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
 GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CACTI_FQDN}' IDENTIFIED BY '${CACTI}';
 GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
-UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';
-UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';
-UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';
 FLUSH PRIVILEGES;
 EOF
+
+#UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';
+#UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';
+#UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';
 
 # Shut down MySQL before transitioning to service startup.
 mysqladmin -uroot -p${MYSQL} shutdown
@@ -252,12 +258,12 @@ EOF
 # Set the DB info for cacti.
 # Many characters can disrupt this.
 # Avoid & and ! and possibly others in passwords.
-sed -i "s/database_hostname = 'localhost'/database_hostname = '${CACTI_FQDN}'/" /usr/share/webapps/cacti/include/config.php
-sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/webapps/cacti/include/config.php
+sed -i "s/database_hostname = 'localhost'/database_hostname = '${CACTI_FQDN}'/" /usr/share/cacti/include/config.php
+sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/cacti/include/config.php
 
 # Set the default backup schedule, if not provided
 CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
-echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
+echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/root
 
 # If you use /bin/sh, make sure you source this file after logging in.
 echo "export BACKUPS=${BACKUPS}" >> /root/.bashrc
@@ -266,15 +272,15 @@ echo "alias ll='ls -l'" >> /root/.bashrc
 
 # This gets reset to root:root for some reason, so I set it back.
 # Probably caused by host permissions. (to-do)
-chown -R cacti:cacti /var/lib/cacti/rra
+chown -R cacti:cacti /usr/share/cacti/rra
 chown -R mysql:mysql /var/lib/mysql
 
 # Last few location setups, pulled out of the Dockerfile, so that logs can be mounted externally
-mkdir -p /var/log/cacti
-touch /var/log/cacti/cacti.log
-chown -R apache:apache /var/log/cacti/
+#mkdir -p /var/log/cacti
+#touch /var/log/cacti/cacti.log
+#chown -R apache:apache /var/log/cacti/
 
-export MIBDIRS=/usr/share/snmp/mibs:/usr/share/snmp/mibs/iana:/usr/share/snmp/mibs/ietf:/usr/local/share/snmp/mibs
+export MIBDIRS=/usr/share/snmp/mibs:/usr/share/snmp/mibs/iana:/usr/share/snmp/mibs/ietf:/usr/share/cacti/mibs
 
 # Now start all the services.
 # This is as bare-bones as you can get.
@@ -290,10 +296,11 @@ sleep 3
 # Start cron
 # The cacti package installation left a cron file at: /etc/crontabs/cacti
 # Also see: /var/spool/cron/crontabs/root, or just crontab -e
-crond -L /var/log/cron
+crond
 
 # Start Apache
-/usr/sbin/httpd -k start -f /etc/apache2/httpd.conf
+/usr/sbin/httpd -k start -f /etc/httpd/conf/httpd.conf
 
 # Hold open the session
-tail -F /var/log/apache2/error.log /var/log/apache2/access.log /var/log/cron /var/log/cacti/cacti.log /var/lib/mysql/${CACTI_FQDN}.err
+touch /var/log/httpd/error_log /var/log/httpd/access_log /var/log/cacti/cacti.log /var/log/cron /var/log/cacti/setup.log
+tail -F /var/log/httpd/error_log /var/log/httpd/access_log /var/log/cacti/cacti.log /var/log/cron /var/log/cacti/setup.log
