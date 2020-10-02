@@ -60,11 +60,11 @@ fi
 # Look for main my.cnf file
 # If it's mising, the rest doesn't matter
 # Everything else will be moved to bak.
-if [[ ! -f /etc/my.cnf ]] ||
+if [[ ! -f /etc/my.cnf ]] || [[ ! -f /etc/my.cnf.d/mariadb-server.cnf ]]
 then
 	mkdir -p /etc/mysql/bak/${TIMESTAMP}
-	cd /etc/mysql
-	EXISTING_DATA=$(ls -1 | grep -v bak)
+	cd /etc
+	EXISTING_DATA=$(ls -1 | grep -v bak | grep my)
 	if [[ !-z ${EXISTING_DATA} ]]
 	then
     	mv ${EXISTING_DATA} /etc/mysql/bak/${TIMESTAMP}/
