@@ -60,7 +60,7 @@ fi
 # Look for main my.cnf file
 # If it's mising, the rest doesn't matter
 # Everything else will be moved to bak.
-if [[ ! -f /etc/mysql/my.cnf ]]
+if [[ ! -f /etc/my.cnf ]] ||
 then
 	mkdir -p /etc/mysql/bak/${TIMESTAMP}
 	cd /etc/mysql
@@ -69,18 +69,24 @@ then
 	then
     	mv ${EXISTING_DATA} /etc/mysql/bak/${TIMESTAMP}/
 	fi
+	cp -rpf ${BACKUPDIR}/mysql/my* /etc/
 	# Then set our config
-	cat > /etc/mysql/my.cnf <<EOF
+	cat > /etc/my.cnf.d/mariadb-server.cnf <<EOF
 [mysqld]
+skip-networking
+[mariadb]
 collation_server = utf8mb4_unicode_ci
 character_set_server = utf8mb4
 max_heap_table_size = 1024M
 max_allowed_packet = 16M
-tmp_table_size = 128M
-join_buffer_size = 128M
-innodb_buffer_pool_size = 4096M
-innodb_doublewrite = OFF
+tmp_table_size = 1024M
+join_buffer_size = 2048M
+innodb_buffer_pool_size = 12288M
+innodb_buffer_pool_instances = 64
+innodb_doublewrite = ON
 innodb_flush_log_at_timeout = 10
+innodb_io_capacity = 5000
+innodb_io_capacity_max = 10000
 innodb_read_io_threads = 32
 innodb_write_io_threads = 16
 EOF
@@ -110,7 +116,7 @@ then
 	# Ingest timezone data from the O/S
 	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
 	# Set the current timezone for MySQL
-	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
+	echo 'default-time-zone = '$TZ >> /etc/my.cnf.d/mariadb-server.cnf
 	# Refresh the running MySQL server
 	mysqladmin -uroot -p${MYSQL} reload
 	# Create the cacti database
@@ -149,9 +155,9 @@ echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CONTAINERFQDN}' IDE
 echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
 
 # Avoid unix sockets based access
-echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
-echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
-echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';" | mysql -uroot -p${MYSQL}
+#echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
+#echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
+#echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';" | mysql -uroot -p${MYSQL}
 echo "flush privileges;" | mysql -uroot -p${MYSQL}
 
 # Shut down MySQL before transitioning to service startup.
@@ -191,9 +197,9 @@ CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
 echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 
 # If you use /bin/sh, make sure you source this file after logging in.
-echo "export BACKUPS=${BACKUPS}" >> /root/.bashrc
+echo "export BACKUPS=${BACKUPS}" >> /etc/profile.d/cacti.sh
 # I use ll all the time.
-echo "alias ll='ls -l'" >> /root/.bashrc
+echo "alias ll='ls -l'" >> /etc/profile.d/cacti.sh
 
 # Now start all the services.
 /init-services
