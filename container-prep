@@ -52,6 +52,8 @@ then
         mv -f ${EXISTING_DATA} /etc/php7/bak/${TIMESTAMP}/
     fi
 	sed -i "s|\;date.timezone =|date.timezone = \"${TZ}\"|" ${BACKUPDIR}/php7/php.ini
+	sed -i "s|memory_limit = 128M|memory_limit = 512M|" ${BACKUPDIR}/php7/php.ini
+	sed -i "s|max_execution_time = 30|max_execution_time = 60|" ${BACKUPDIR}/php7/php.ini
 	cp -rpf ${BACKUPDIR}/php7/* /etc/php7/
 fi
 
@@ -107,7 +109,7 @@ then
 	mysqladmin -uroot password ${MYSQL}
 	# Ingest timezone data from the O/S
 	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
-	# Set the current timezone for MySQL 
+	# Set the current timezone for MySQL
 	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
 	# Refresh the running MySQL server
 	mysqladmin -uroot -p${MYSQL} reload
