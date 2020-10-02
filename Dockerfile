@@ -1,10 +1,10 @@
-FROM alpine:latest
+FROM alpine:3.8
 
-ENV CACTI_VERSION latest
+ENV CACTI_VERSION 1.1.38
 
 # Install all the things we need to do everything.
 RUN /sbin/apk --no-cache upgrade && \
-	/sbin/apk --no-cache add apache2 mariadb mariadb-client php7 cacti cacti-php7 vim php7-apache2 net-snmp curl tzdata openrc cacti-setup wget patch gd php7-dom automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
+	/sbin/apk --no-cache add apache2 mariadb mariadb-client php7 php7-ctype cacti cacti-php7 vim php7-apache2 net-snmp curl tzdata openrc cacti-setup wget patch gd php7-dom automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev help2man
 
 # Move all the default configs into a backup location,
 # from where they _might_ be restored later in the container startup process
