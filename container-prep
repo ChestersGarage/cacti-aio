@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/sh -x
+
 # Check for passwords at container startup
 # Fail to start the container if not provided
 if [[ -z "$MYSQL" ]]
@@ -142,8 +143,8 @@ echo "DELETE FROM mysql.user WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL
 echo "DELETE FROM mysql.user WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
 
 # Create users
-echo "CREATE USER 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';"  | mysql -uroot -p${MYSQL}
-echo "CREATE USER 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';"  | mysql -uroot -p${MYSQL}
+echo "CREATE USER 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';"  | mysql -uroot -p${MYSQL}
+echo "CREATE USER 'backups'@'${CONTAINERFQDN}' IDENTIFIED BY '${BACKUPS}';"  | mysql -uroot -p${MYSQL}
 
 # Grant backup to backups
 echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CONTAINERFQDN}';" | mysql -uroot -p${MYSQL}
