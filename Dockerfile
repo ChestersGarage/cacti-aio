@@ -12,14 +12,13 @@ RUN /sbin/apk --no-cache upgrade && \
 # Also sets up a few locations, resources and permisions
 RUN BACKUPDIR="/root/default-configs" && \
 	mkdir -p ${BACKUPDIR}/mysql && \
-	mv /etc/mysql/my.cnf ${BACKUPDIR}/mysql/ && \
+	mv /etc/mysql /etc/my.cnf /etc/my.cnf.d ${BACKUPDIR}/mysql/ && \
 	mkdir -p ${BACKUPDIR}/apache && \
 	mv /etc/apache2/* ${BACKUPDIR}/apache/ && \
 	mkdir ${BACKUPDIR}/php7 && \
 	mv /etc/php7/* ${BACKUPDIR}/php7/ && \
 	mkdir -p /run/apache2 && \
 	mkdir -p /run/openrc && \
-	mkdir -p /usr/share/webapps/cacti/log && \
 	touch /run/openrc/softlevel && \
 	touch /usr/share/webapps/cacti/log/cacti.log && \
 	mkdir -p /var/lib/spine/src && \
