@@ -72,8 +72,6 @@ then
 	cp -rpf ${BACKUPDIR}/mysql/my* /etc/
 	# Then set our config
 	cat > /etc/my.cnf.d/mariadb-server.cnf <<EOF
-[mysqld]
-skip-networking
 [mariadb]
 collation_server = utf8mb4_unicode_ci
 character_set_server = utf8mb4
