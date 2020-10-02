@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM alpine:3.12
 
 ENV CACTI_VERSION 1.1.38
 
