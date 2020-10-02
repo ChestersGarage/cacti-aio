@@ -143,16 +143,19 @@ fi
 echo "DELETE FROM mysql.user WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
 echo "DELETE FROM mysql.user WHERE User = 'backups';" | mysql -uroot -p${MYSQL}
 
-# Create a user for running backups
-echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CONTAINERFQDN}' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
-echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';" | mysql -uroot -p${MYSQL}
+# Create users
+CREATE USER 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
+CREATE USER 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';
 
-# Create the cacti user
-echo "GRANT ALL ON cacti.* TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-echo "GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+# Grant backup to backups
+echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CONTAINERFQDN}';" | mysql -uroot -p${MYSQL}
+echo "GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'localhost';" | mysql -uroot -p${MYSQL}
 
-echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CONTAINERFQDN}' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
-echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';" | mysql -uroot -p${MYSQL}
+# Grant cacti access to cactiuser
+echo "GRANT ALL ON cacti.* TO 'cactiuser'@'${CONTAINERFQDN}';" | mysql -uroot -p${MYSQL}
+echo "GRANT ALL ON cacti.* TO 'cactiuser'@'localhost';" | mysql -uroot -p${MYSQL}
+echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CONTAINERFQDN}';" | mysql -uroot -p${MYSQL}
+echo "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost';" | mysql -uroot -p${MYSQL}
 
 # Avoid unix sockets based access
 #echo "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';" | mysql -uroot -p${MYSQL}
@@ -202,4 +205,4 @@ echo "export BACKUPS=${BACKUPS}" >> /etc/profile.d/cacti.sh
 echo "alias ll='ls -l'" >> /etc/profile.d/cacti.sh
 
 # Now start all the services.
-/init-services
+exec /init-services
