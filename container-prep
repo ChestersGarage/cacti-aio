@@ -30,7 +30,7 @@ then
 	mkdir -p /etc/apache2/bak/${TIMESTAMP}
 	cd /etc/apache2
 	EXISTING_DATA=$(ls -1 | grep -v bak)
-	if [[ !-z ${EXISTING_DATA} ]]
+	if [[ ! -z ${EXISTING_DATA} ]]
 	then
         mv ${EXISTING_DATA} /etc/apache2/bak/${TIMESTAMP}/
 	fi
@@ -48,7 +48,7 @@ then
 	mkdir -p /etc/php7/bak/${TIMESTAMP}
 	cd /etc/php7
 	EXISTING_DATA=$(ls -1 | grep -v bak)
-	if [[ !-z ${EXISTING_DATA} ]]
+	if [[ ! -z ${EXISTING_DATA} ]]
 	then
         mv -f ${EXISTING_DATA} /etc/php7/bak/${TIMESTAMP}/
     fi
@@ -66,7 +66,7 @@ then
 	mkdir -p /etc/mysql/bak/${TIMESTAMP}
 	cd /etc
 	EXISTING_DATA=$(ls -1 | grep -v bak | grep my)
-	if [[ !-z ${EXISTING_DATA} ]]
+	if [[ ! -z ${EXISTING_DATA} ]]
 	then
     	mv ${EXISTING_DATA} /etc/mysql/bak/${TIMESTAMP}/
 	fi
@@ -103,7 +103,7 @@ then
 	mkdir -p /var/lib/mysql/bak/${TIMESTAMP}
 	cd /var/lib/mysql
 	EXISTING_DATA=$(ls -1 | grep -v bak)
-	if [[ !-z ${EXISTING_DATA} ]]
+	if [[ ! -z ${EXISTING_DATA} ]]
 	then
     	mv ${EXISTING_DATA} /var/lib/mysql/bak/${TIMESTAMP}/
     fi
