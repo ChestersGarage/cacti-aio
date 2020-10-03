@@ -2,7 +2,7 @@ FROM alpine:3.12
 
 # These are all pretty much what came with alpine:3.12.
 # Lock versions of critical packages for more predictable container behavior.
-ENV CACTI_VERSION 1.2.12
+ENV CACTI_VERSION 1.2.14
 ENV CACTIPACKAGE_VERSION 1.2.12-r0
 ENV APACHE_VERSION 2.4.46-r0
 ENV PHP_VERSION 7.3.23-r0
