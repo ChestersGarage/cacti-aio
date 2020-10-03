@@ -2,13 +2,11 @@
 
 An all-in-one implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
-## WARNING: I may need to deprecate this image (stay tuned)
-
-I ran into a bug related to PHP 7.2 that comes in the Alpine Linux distro, which I have not been able to fix. And things are even worse if I use PHP 5.x in Alpine.  However, that bug is not present in my new image that uses CentOS 7.  I'm hoping I can resolve the bug in Alpine, because the CentOS image is flipping massive (1.6 GB), compared to this image based on Alpine (525 MB)!
+## Non-funtional; in active development
 
 ## Versions
 
-Not sure yet how I want to handle versioning.  Right now, I'm just pinning a point across currently available versions, keeping increments small for now. Probably will maintain "latest" and two past versions at most, depending on how fast Cacti revs. 
+Not sure yet how I want to handle versioning.  Right now, I'm just pinning a point across currently available versions, keeping increments small for now. Probably will maintain "latest" and two past versions at most, depending on how fast Cacti revs.
 
 * latest - Runs the latest Cacti and Spine versions on the latest Alpine Linux, as of the image build time.
 * 0.0.1 - Runs Cacti and Spine 1.1.38 on Alpine Linux 3.8, fully updated as of the image build time.
@@ -121,7 +119,7 @@ If you do not specify, the default is every hour, at 2 minutes past the hour.
 ```
 -e CRON_PATTERN="2 * * * *"
 
-``` 
+```
 
 Run at 3:15 AM every day.
 
@@ -184,7 +182,7 @@ docker exec cacti /restore <file-name>
 
 ```
 
-Once the restore completes, you must terminate the cacti container, and re-run it. 
+Once the restore completes, you must terminate the cacti container, and re-run it.
 
 Make sure you set the MySQL root password correctly after restoring from backup.
 
