@@ -136,7 +136,7 @@ EOF
     # Ingest timezone data from the O/S
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
     # Set the current timezone for MySQL
-    echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
+    echo 'default-time-zone = '$TZ >> /etc/my.cnf.d/mariadb-server.cnf
     # Refresh the running MySQL server
     mysqladmin -uroot -p${MYSQL} shutdown
     nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
@@ -264,7 +264,7 @@ EOF
 # Set the DB info for cacti.
 # Many characters can disrupt this.
 # Avoid & and ! and possibly others in passwords.
-sed -i "s/database_hostname = 'localhost'/database_hostname = '${CACTI_FQDN}'/" /usr/share/webapps/cacti/include/config.php
+#sed -i "s/database_hostname = 'localhost'/database_hostname = '${CACTI_FQDN}'/" /usr/share/webapps/cacti/include/config.php
 sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/share/webapps/cacti/include/config.php
 
 # Set the default backup schedule, if not provided

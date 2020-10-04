@@ -2,7 +2,7 @@ FROM alpine:3.12
 
 # These are all pretty much what came with alpine:3.12.
 # Lock versions of critical packages for more predictable container behavior.
-ENV CACTI_VERSION 1.2.14
+ENV CACTI_VERSION 1.2.12
 ENV CACTIPACKAGE_VERSION 1.2.12-r0
 ENV APACHE_VERSION 2.4.46-r0
 ENV PHP_VERSION 7.3.23-r0
@@ -76,7 +76,7 @@ RUN cd /tmp && \
     chown -R apache:apache /usr/share/webapps/cacti/cache/ && \
     chown -R apache:apache /usr/share/webapps/cacti/resource/ && \
     chown -R apache:apache /usr/share/webapps/cacti/scripts/ && \
-    rm -f /tmp/cacti-${CACTI_VERSION}.tar.gz
+    rm -f /tmp/cacti-${CACTI_VERSION}.tar.gz \
     chown -R apache:apache /var/log/cacti/
 
 # Download and install spine.
@@ -98,44 +98,34 @@ RUN cd /var/lib/spine/src && \
     /usr/bin/make && \
     /usr/bin/make install && \
     /bin/chown root:root /usr/local/spine/bin/spine && \
-<<<<<<< HEAD
-    /bin/chmod +s /usr/local/spine/bin/spine && \
+    /bin/chmod u+s /usr/local/spine/bin/spine && \
     rm -rf /tmp/cacti-spine-${CACTI_VERSION}.tar.gz /tmp/cacti-spine-${CACTI_VERSION}
 
 # Install a zillion MIBs
 RUN mkdir -p /usr/share/snmp/mibs
 ADD snmp-mibs.tgz /usr/share/snmp/mibs/
 ADD snmp-mibs2.tgz /usr/share/snmp/mibs/
+# Make sure all MIBs are active
+RUN echo "mibs +ALL" >> /etc/snmp/snmpd.conf && \
+    echo "mibs +ALL" >> /etc/snmp/snmp.conf
 
 # Download and install hddtemp
 # https://wiki.archlinux.org/index.php/Hddtemp
 # https://www.cyberciti.biz/tips/howto-monitor-hard-drive-temperature.html
-RUN cd /tmp && \
-    wget http://download-mirror.savannah.gnu.org/releases/hddtemp/hddtemp-0.3-beta15.tar.bz2 && \
-    tar -jxvf hddtemp-0.3-beta15.tar.bz2 && \
-    cd hddtemp-0.3-beta15 && \
-    ./configure && \
-    make && \
-    make install && \
-    rm -rf /tmp/hddtemp-0.3-beta15 /tmp/hddtemp-0.3-beta15.tar.bz2 && \
-    mkdir -p /usr/share/misc && \
-    wget -O /usr/share/misc/hddtemp.db http://download.savannah.nongnu.org/releases/hddtemp/hddtemp.db
-
-# Bugs and other anomolies
-# First and second lines: Apply a bug fix caused by PHP 7.2
-#RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/utility.php && \
-#   sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php
-
-# Make sure all MIBs are active
-RUN echo "mibs +ALL" >> /etc/snmp/snmpd.conf && \
-    echo "mibs +ALL" >> /etc/snmp/snmp.conf
-=======
-    /bin/chmod +s /usr/local/spine/bin/spine
+#RUN cd /tmp && \
+#    wget http://download-mirror.savannah.gnu.org/releases/hddtemp/hddtemp-0.3-beta15.tar.bz2 && \
+#    tar -jxvf hddtemp-0.3-beta15.tar.bz2 && \
+#    cd hddtemp-0.3-beta15 && \
+#    ./configure && \
+#    make && \
+#    make install && \
+#    rm -rf /tmp/hddtemp-0.3-beta15 /tmp/hddtemp-0.3-beta15.tar.bz2 && \
+#    mkdir -p /usr/share/misc && \
+#    wget -O /usr/share/misc/hddtemp.db http://download.savannah.nongnu.org/releases/hddtemp/hddtemp.db
 
 # Apply a bug fix caused by PHP 7.2
 RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/utility.php && \
     sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php
->>>>>>> 7c5493898d3455f6369950938c348bbaa7d11460
 
 # Add our stuff
 ADD bin /
