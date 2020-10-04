@@ -1,10 +1,11 @@
 #!/bin/bash -x
+
 # Check for passwords at container startup
 # Fail to start the container if not provided
 if [[ -z "$MYSQL" ]]
 then
-	echo "Password for MySQL/MariaDB root user was not provided."
-	exit 1
+    echo "Password for MySQL/MariaDB root user was not provided."
+    exit 1
 fi
 
 # Create new passwords for cacti and backups users
@@ -29,22 +30,22 @@ ln -s /usr/share/zoneinfo/${TZ} /etc/localtime
 # If it's missing, the rest doesn't matter and will be moved to bak.
 if [[ ! -f /etc/apache2/httpd.conf ]]
 then
-	# We don't want anything else that might be in there either
-	mkdir -p /etc/apache2/bak/${TIMESTAMP}
-	cd /etc/apache2
-	EXISTING_DATA=$(ls -1 | grep -v bak)
-	if [[ ! -z ${EXISTING_DATA} ]]
-	then
+    # We don't want anything else that might be in there either
+    mkdir -p /etc/apache2/bak/${TIMESTAMP}
+    cd /etc/apache2
+    EXISTING_DATA=$(ls -1 | grep -v bak)
+    if [[ ! -z ${EXISTING_DATA} ]]
+    then
         mv ${EXISTING_DATA} /etc/apache2/bak/${TIMESTAMP}/
-	fi
-	# Copy in the defaults
-	cp -rpf ${BACKUPDIR}/apache/* /etc/apache2/
+    fi
+    # Copy in the defaults
+    cp -rpf ${BACKUPDIR}/apache/* /etc/apache2/
 fi
 
 # Set the Apache listening port
 if [[ ! -z "${OLD_PORT}" ]]
 then
-	sed -i "s|Listen ${OLD_PORT}|Listen 80|" ${BACKUPDIR}/apache/httpd.conf
+    sed -i "s|Listen ${OLD_PORT}|Listen 80|" ${BACKUPDIR}/apache/httpd.conf
 fi
 sed -i "s|Listen 80|Listen ${PORT}|" ${BACKUPDIR}/apache/httpd.conf
 
@@ -55,45 +56,51 @@ echo "ServerName ${CACTI_FQDN}" > /etc/apache2/conf.d/fqdn.conf
 # If it's missing, the rest doesn't matter and will be moved to bak.
 if [[ ! -f /etc/php7/php.ini ]]
 then
-	mkdir -p /etc/php7/bak/${TIMESTAMP}
-	cd /etc/php7
-	EXISTING_DATA=$(ls -1 | grep -v bak)
-	if [[ ! -z ${EXISTING_DATA} ]]
-	then
+    mkdir -p /etc/php7/bak/${TIMESTAMP}
+    cd /etc/php7
+    EXISTING_DATA=$(ls -1 | grep -v bak)
+    if [[ ! -z ${EXISTING_DATA} ]]
+    then
         mv -f ${EXISTING_DATA} /etc/php7/bak/${TIMESTAMP}/
     fi
-	sed -i "s|\;date.timezone =|date.timezone = \"${TZ}\"|" ${BACKUPDIR}/php7/php.ini
-	cp -rpf ${BACKUPDIR}/php7/* /etc/php7/
+    sed -i "s|\;date.timezone =|date.timezone = \"${TZ}\"|" ${BACKUPDIR}/php7/php.ini
+    sed -i "s|memory_limit = 128M|memory_limit = 512M|" ${BACKUPDIR}/php7/php.ini
+    sed -i "s|max_execution_time = 30|max_execution_time = 60|" ${BACKUPDIR}/php7/php.ini
+    cp -rpf ${BACKUPDIR}/php7/* /etc/php7/
 fi
 
 # Look for main my.cnf file
 # If it's mising, the rest doesn't matter
 # Everything else will be moved to bak.
-if [[ ! -f /etc/mysql/my.cnf ]]
+if [[ ! -f /etc/my.cnf ]] || [[ ! -f /etc/my.cnf.d/mariadb-server.cnf ]]
 then
-	mkdir -p /etc/mysql/bak/${TIMESTAMP}
-	cd /etc/mysql
-	EXISTING_DATA=$(ls -1 | grep -v bak)
-	if [[ ! -z ${EXISTING_DATA} ]]
-	then
-    	mv ${EXISTING_DATA} /etc/mysql/bak/${TIMESTAMP}/
-	fi
-	# Then set our config
-	cat > /etc/mysql/my.cnf <<EOF
-[mysqld]
+    mkdir -p /etc/mysql/bak/${TIMESTAMP}
+    cd /etc
+    EXISTING_DATA=$(ls -1 | grep -v bak | grep my)
+    if [[ ! -z ${EXISTING_DATA} ]]
+    then
+        mv ${EXISTING_DATA} /etc/mysql/bak/${TIMESTAMP}/
+    fi
+    cp -rpf ${BACKUPDIR}/mysql/my* /etc/
+    # Then set our config
+    cat > /etc/my.cnf.d/mariadb-server.cnf <<EOF
+[mariadb]
 collation_server = utf8mb4_unicode_ci
 character_set_server = utf8mb4
-max_heap_table_size = 128M
+max_heap_table_size = 1024M
 max_allowed_packet = 16M
-tmp_table_size = 128M
-join_buffer_size = 128M
-innodb_buffer_pool_size = 256M
-innodb_file_per_table = ON
-innodb_doublewrite = OFF
+tmp_table_size = 1024M
+join_buffer_size = 2048M
+innodb_buffer_pool_size = 12288M
+innodb_buffer_pool_instances = 64
+innodb_doublewrite = ON
+innodb_flush_log_at_timeout = 10
+innodb_io_capacity = 5000
+innodb_io_capacity_max = 10000
 innodb_read_io_threads = 32
 innodb_write_io_threads = 16
-innodb_flush_log_at_trx_commit = 2
-innodb_flush_log_at_timeout = 3
+innodb_file_format = Barracuda
+innodb_large_prefix = 1
 EOF
 fi
 
@@ -102,24 +109,23 @@ fi
 # Everything else will be moved to bak.
 if [[ ! -d /var/lib/mysql/cacti ]]
 then
-	# Start from fresh
-	# Move any existing files out of the way
-	mkdir -p /var/lib/mysql/bak/${TIMESTAMP}
-	cd /var/lib/mysql
-	EXISTING_DATA=$(ls -1 | grep -v bak)
-	if [[ ! -z ${EXISTING_DATA} ]]
-	then
-    	mv ${EXISTING_DATA} /var/lib/mysql/bak/${TIMESTAMP}/
+    # Start from fresh
+    # Move any existing files out of the way
+    mkdir -p /var/lib/mysql/bak/${TIMESTAMP}
+    cd /var/lib/mysql
+    EXISTING_DATA=$(ls -1 | grep -v bak)
+    if [[ ! -z ${EXISTING_DATA} ]]
+    then
+        mv ${EXISTING_DATA} /var/lib/mysql/bak/${TIMESTAMP}/
     fi
-	# Initialize the database
-	#/etc/init.d/mariadb setup
-	mysql_install_db --user=mysql --rpm
-	# Start MySQL/MariaDB
-	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
-	sleep 3
-	# Set the MySQL root password
-	mysqladmin -uroot password ${MYSQL}
-	# Clean up for production
+    # Initialize the database
+    /etc/init.d/mariadb setup
+    # Start MySQL/MariaDB
+    nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
+    sleep 3
+    # Set the MySQL root password
+    mysqladmin -uroot password ${MYSQL}
+    # Clean up for production
 mysql --user=root -p${MYSQL} <<EOF
 DELETE FROM mysql.user WHERE User='';
 DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
@@ -127,22 +133,22 @@ DROP DATABASE IF EXISTS test;
 DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
-	# Ingest timezone data from the O/S
-	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
-	# Set the current timezone for MySQL
-	echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
-	# Refresh the running MySQL server
-	mysqladmin -uroot -p${MYSQL} shutdown
-	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
-	sleep 3
-	# Create the cacti database
-	mysqladmin -uroot -p${MYSQL} create cacti
-	# Ingest the cacti initialization script
-	mysql -uroot -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
-	# Add one-minute polling RRAs
-	# https://www.tolaris.com/2013/07/09/cacti-and-1-minute-polling/comment-page-1/
-	# Add the default admin user's startup preferences
-	mysql -uroot -p${MYSQL} cacti <<EOF
+    # Ingest timezone data from the O/S
+    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
+    # Set the current timezone for MySQL
+    echo 'default-time-zone = '$TZ >> /etc/mysql/my.cnf
+    # Refresh the running MySQL server
+    mysqladmin -uroot -p${MYSQL} shutdown
+    nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
+    sleep 3
+    # Create the cacti database
+    mysqladmin -uroot -p${MYSQL} create cacti
+    # Ingest the cacti initialization script
+    mysql -uroot -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
+    # Add one-minute polling RRAs
+    # https://www.tolaris.com/2013/07/09/cacti-and-1-minute-polling/comment-page-1/
+    # Add the default admin user's startup preferences
+    mysql -uroot -p${MYSQL} cacti <<EOF
 INSERT INTO data_source_profiles VALUES (3,'48f01ca42a88cfc169d019312cb6f70f','One-Minute Polling',60,120,0.5,'');
 INSERT INTO data_source_profiles_cf VALUES (3,1),(3,2),(3,3),(3,4);
 INSERT INTO data_source_profiles_rra VALUES (9,3,'Hourly (1-Minute Average @ 1-Minute Interval)',1,10080,3600);
@@ -160,11 +166,11 @@ INSERT INTO settings_user VALUES (1,'allow_graph_dates_in_future','on'),(1,'axis
 (1,'unit_size','8'),(1,'user_language','en-US');
 EOF
 
-	# Drop some customizations into the startup wizard
-	# Ingest our custom templates!
-	# Set poller and cron intervals to 60 seconds
-	# Set poller to spine
-	sed -i "s|\/\/ Add the correct device type|\
+    # Drop some customizations into the startup wizard
+    # Ingest our custom templates!
+    # Set poller and cron intervals to 60 seconds
+    # Set poller to spine
+    sed -i "s|\/\/ Add the correct device type|\
 shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3')\;\n\t\t\
 shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Host-MIB-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
 shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Host-MIB-Logged-in-Users.xml --profile-id=3 --remove-orphans')\;\n\t\t\
@@ -187,33 +193,33 @@ db_execute(\"INSERT INTO settings VALUES ('poller_type',2)\")\;\n\t\t\
 db_execute(\"INSERT INTO settings VALUES ('path_spine_config','/usr/local/spine/etc/spine.conf')\")\;\n\n\t\t\
 \/\/ Add the correct device type|g" /usr/share/cacti/install/index.php
 
-	# Set the startup wizard template imports to use the one-minute poller profile
-	sed -i "s|\['filename'\], 1|\['filename'\], 3|g" /usr/share/webapps/cacti/install/index.php
+    # Set the startup wizard template imports to use the one-minute poller profile
+    sed -i "s|\['filename'\], 1|\['filename'\], 3|g" /usr/share/webapps/cacti/install/index.php
 
-	# Set the startup wizard to use the My unRAID Server template instead of the default Local Linux Machine template
-	# Allow setting the community string
-	SNMP_COMMUNITY=${SNMP_COMMUNITY:-public}
-	sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '788bb9d0eaf8c99cd581e544641f5808'|g" /usr/share/webapps/cacti/install/index.php
-	sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|g" /usr/share/webapps/cacti/install/index.php
-	sed -i "s|description  = \"Local Linux Machine\"|description  = \"unRAID Server\"|g" /usr/share/webapps/cacti/install/index.php
-	sed -i "s|version      = 0|version      = 2|g" /usr/share/webapps/cacti/install/index.php
-	sed -i "s|avail        = 'none'|avail        = 'snmp'|g" /usr/share/webapps/cacti/install/index.php
+    # Set the startup wizard to use the My unRAID Server template instead of the default Local Linux Machine template
+    # Allow setting the community string
+    SNMP_COMMUNITY=${SNMP_COMMUNITY:-public}
+    sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '788bb9d0eaf8c99cd581e544641f5808'|g" /usr/share/webapps/cacti/install/index.php
+    sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|g" /usr/share/webapps/cacti/install/index.php
+    sed -i "s|description  = \"Local Linux Machine\"|description  = \"unRAID Server\"|g" /usr/share/webapps/cacti/install/index.php
+    sed -i "s|version      = 0|version      = 2|g" /usr/share/webapps/cacti/install/index.php
+    sed -i "s|avail        = 'none'|avail        = 'snmp'|g" /usr/share/webapps/cacti/install/index.php
 
-	# Set the cacti poller cron job to one minute
-	echo "* * * * * php /usr/share/webapps/cacti/poller.php >/dev/null 2>&1" > /etc/crontabs/cacti
+    # Set the cacti poller cron job to one minute
+    echo "* * * * * php /usr/share/webapps/cacti/poller.php >/dev/null 2>&1" > /etc/crontabs/cacti
 
 else
-	# With exising data, just start the database so we can set up non-root user access.
-	nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
-	sleep 3
+    # With exising data, just start the database so we can set up non-root user access.
+    nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
+    sleep 3
 fi
 
 # Verify provided MySQL root password is valid.
 echo "exit" | mysql -uroot -p${MYSQL}
 if [[ "$?" != "0" ]]
 then
-	echo "Cannot connect to MySQL with the provided root password."
-	exit 1
+    echo "Cannot connect to MySQL with the provided root password."
+    exit 1
 fi
 
 # Set up cacti application access to the database
@@ -223,10 +229,16 @@ mysql -uroot -p${MYSQL} <<EOF
 DELETE FROM mysql.user WHERE User = 'cactiuser';
 DELETE FROM mysql.user WHERE User = 'backups';
 FLUSH PRIVILEGES;
+CREATE USER 'cactiuser'@'${CACTI_FQDN}' IDENTIFIED BY '${CACTI}';
+CREATE USER 'backups'@'${CACTI_FQDN}' IDENTIFIED BY '${BACKUPS}';
+CREATE USER 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
+CREATE USER 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';
+
 GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CACTI_FQDN}' IDENTIFIED BY '${BACKUPS}';
 GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';
 GRANT ALL ON cacti.* TO 'cactiuser'@'${CACTI_FQDN}' IDENTIFIED BY '${CACTI}';
 GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
+
 GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CACTI_FQDN}' IDENTIFIED BY '${CACTI}';
 GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
 UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';
@@ -260,9 +272,10 @@ CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
 echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 
 # If you use /bin/sh, make sure you source this file after logging in.
-echo "export BACKUPS=${BACKUPS}" >> /root/.bashrc
-# I use ll all the time.
-echo "alias ll='ls -l'" >> /root/.bashrc
+cat >> /root/.bashrc <<EOF
+export BACKUPS=${BACKUPS}
+alias ll='ls -l'
+EOF
 
 # This gets reset to root:root for some reason, so I set it back.
 # Probably caused by host permissions. (to-do)

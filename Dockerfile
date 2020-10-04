@@ -1,26 +1,66 @@
-FROM alpine:latest
+FROM alpine:3.12
 
-ENV CACTI_VERSION latest
+# These are all pretty much what came with alpine:3.12.
+# Lock versions of critical packages for more predictable container behavior.
+ENV CACTI_VERSION 1.2.14
+ENV CACTIPACKAGE_VERSION 1.2.12-r0
+ENV APACHE_VERSION 2.4.46-r0
+ENV PHP_VERSION 7.3.23-r0
+ENV MARIADB_VERSION 10.4.13-r0
+ENV SNMP_VERSION 5.8-r3
 
-# Install all the things we need to do everything.
+# Install all the things we need, to do everything.
 RUN /sbin/apk --no-cache upgrade && \
-    /sbin/apk --no-cache add apache2 mariadb mariadb-client php7 cacti cacti-php7 php7-apache2 net-snmp curl tzdata openrc cacti-setup wget patch gd php7-dom automake libtool autoconf make gawk gcc g++ distcc binutils libressl-dev mysql-dev net-snmp-dev
+    /sbin/apk --no-cache add \
+    apache2=${APACHE_VERSION} \
+    mariadb=${MARIADB_VERSION} \
+    mariadb-client=${MARIADB_VERSION} \
+    mariadb-dev=${MARIADB_VERSION} \
+    php7=${PHP_VERSION} \
+    php7-ctype=${PHP_VERSION} \
+    php7-gettext=${PHP_VERSION} \
+    php7-apache2=${PHP_VERSION} \
+    php7-dom=${PHP_VERSION} \
+    cacti=${CACTIPACKAGE_VERSION} \
+    cacti-setup=${CACTIPACKAGE_VERSION} \
+    cacti-php7=${CACTIPACKAGE_VERSION} \
+    net-snmp=${SNMP_VERSION} \
+    net-snmp-dev=${SNMP_VERSION} \
+    openrc=0.42.1-r11 \
+    vim \
+    curl \
+    tzdata \
+    wget \
+    patch \
+    gd \
+    automake \
+    libtool \
+    autoconf \
+    make \
+    gawk \
+    gcc \
+    g++ \
+    distcc \
+    binutils \
+    libressl-dev \
+    help2man
 
 # Move all the default configs into a backup location,
 # from where they _might_ be restored later in the container startup process
 # Init script checks for existing resources and copy in defauts if none are found or recognized
 RUN BACKUPDIR="/root/default-configs" && \
     mkdir -p ${BACKUPDIR}/mysql && \
-    mv /etc/mysql/my.cnf ${BACKUPDIR}/mysql/ && \
+    mv /etc/mysql /etc/my.cnf /etc/my.cnf.d ${BACKUPDIR}/mysql/ && \
     mkdir -p ${BACKUPDIR}/apache && \
     mv /etc/apache2/* ${BACKUPDIR}/apache/ && \
     mkdir ${BACKUPDIR}/php7 && \
-    mv /etc/php7/* ${BACKUPDIR}/php7/
-
-# Misc locations and things
-RUN mkdir -p /run/apache2 && \
+    mv /etc/php7/* ${BACKUPDIR}/php7/ && \
+    mkdir -p /run/apache2 && \
     mkdir -p /run/openrc && \
     touch /run/openrc/softlevel && \
+    touch /usr/share/webapps/cacti/log/cacti.log && \
+    mkdir -p /var/lib/spine/src && \
+    ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti && \
     mkdir -p /var/backups
 
 # Update Cacti
@@ -31,23 +71,22 @@ RUN cd /tmp && \
     PACKAGE_VERSION=$(tar -tf cacti-${CACTI_VERSION}.tar.gz | head -n1 | tr -d /) && \
     ln -s /usr/share/webapps/cacti /usr/share/webapps/${PACKAGE_VERSION} && \
     tar -xvf cacti-${CACTI_VERSION}.tar.gz -C /usr/share/webapps && \
-    mkdir -p /usr/share/webapps/cacti/log && \
-    ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti && \
     chown -R cacti:cacti /usr/share/webapps/cacti/ && \
     chown -R cacti:cacti /var/lib/cacti/ && \
     chown -R apache:apache /usr/share/webapps/cacti/cache/ && \
     chown -R apache:apache /usr/share/webapps/cacti/resource/ && \
     chown -R apache:apache /usr/share/webapps/cacti/scripts/ && \
     rm -f /tmp/cacti-${CACTI_VERSION}.tar.gz
+    chown -R apache:apache /var/log/cacti/
 
 # Download and install spine.
 # Naturally, spine's version is locked to cacti's version, because versioning.
 # https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
-RUN cd /tmp && \
+RUN cd /var/lib/spine/src && \
     wget http://www.cacti.net/downloads/spine/cacti-spine-${CACTI_VERSION}.tar.gz && \
     PACKAGE_VERSION=$(tar -tf cacti-spine-${CACTI_VERSION}.tar.gz | head -n1 | tr -d /) && \
     tar -zxvf cacti-spine-${CACTI_VERSION}.tar.gz && \
-    cd ${PACKAGE_VERSION}/ && \
+    cd /var/lib/spine/src/${PACKAGE_VERSION}/ && \
     /usr/bin/aclocal && \
     /usr/bin/libtoolize --force && \
     /usr/bin/autoheader && \
@@ -59,6 +98,7 @@ RUN cd /tmp && \
     /usr/bin/make && \
     /usr/bin/make install && \
     /bin/chown root:root /usr/local/spine/bin/spine && \
+<<<<<<< HEAD
     /bin/chmod +s /usr/local/spine/bin/spine && \
     rm -rf /tmp/cacti-spine-${CACTI_VERSION}.tar.gz /tmp/cacti-spine-${CACTI_VERSION}
 
@@ -89,6 +129,13 @@ RUN cd /tmp && \
 # Make sure all MIBs are active
 RUN echo "mibs +ALL" >> /etc/snmp/snmpd.conf && \
     echo "mibs +ALL" >> /etc/snmp/snmp.conf
+=======
+    /bin/chmod +s /usr/local/spine/bin/spine
+
+# Apply a bug fix caused by PHP 7.2
+RUN sed -i "s|\$ids = array()\;|\$ids = \'\'\;|" /usr/share/webapps/cacti/lib/utility.php && \
+    sed -i "s|if (sizeof(\$ids))|if (strlen(\$ids))|" /usr/share/webapps/cacti/lib/utility.php
+>>>>>>> 7c5493898d3455f6369950938c348bbaa7d11460
 
 # Add our stuff
 ADD bin /

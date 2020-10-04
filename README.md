@@ -2,15 +2,11 @@
 
 An all-in-one implementation of the Cacti (https://www.cacti.net) network monitoring and graphing system, built on Alpine Linux (https://alpinelinux.org/). This Docker image aims to provide a highly fault-tolerant and self-recovering instance of Cacti, while reducing the required steps to becoming operational. It includes the Spine poller, configured and operational. And it contains all the components needed to run Cacti, including PHP, MySQL/MariaDB, Apache 2, dependent packages, and some management scripts.
 
-I've decided to focus this image on the unRAID server platform.  Due to the local hardware-specific goals of this image, it doesn't make sense to configure it for general usage. I'll build a generally applicable image in the near future, which won't be as rigid in some configurations.
-
-## This image is not yet mature
-
-I'm still refining, updating and adding features to this image, and may update it in ways that cause loss of data. Make sure your data and backups are being written to persistent storage, if you want to use the image reliably.
+## Non-funtional; in active development
 
 ## Versions
 
-Not sure yet how I want to handle versioning.  Right now, I'm just pinning a point across currently available versions, keeping increments small for now. Probably will maintain "latest" and two past versions at most, depending on how fast Cacti revs. 
+Not sure yet how I want to handle versioning.  Right now, I'm just pinning a point across currently available versions, keeping increments small for now. Probably will maintain "latest" and two past versions at most, depending on how fast Cacti revs.
 
 * latest - Runs the latest Cacti and Spine versions on the latest Alpine Linux, as of the image build time.
 * 0.0.1 - Runs Cacti and Spine 1.1.38 on Alpine Linux 3.8, fully updated as of the image build time.
@@ -84,7 +80,7 @@ Some variables we need for Cacti to set up all the default graphs:
 
 ```
 -e UNRAID_HOST='<unraid hostname or ip address>'
--e 
+-e
 
 ```
 
@@ -135,7 +131,7 @@ If you do not specify, the default is every hour, at 2 minutes past the hour.
 ```
 -e CRON_PATTERN="2 * * * *"
 
-``` 
+```
 
 Run at 3:15 AM every day.
 
@@ -198,7 +194,7 @@ docker exec cacti /restore <file-name>
 
 ```
 
-Once the restore completes, you must terminate the cacti container, and re-run it. 
+Once the restore completes, you must terminate the cacti container, and re-run it.
 
 Make sure you set the MySQL root password correctly after restoring from backup.
 
