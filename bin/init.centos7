@@ -45,9 +45,9 @@ fi
 # Set the Apache listening port
 if [[ ! -z "${OLD_PORT}" ]]
 then
-    sed -i "s|Listen ${OLD_PORT}|Listen 80|" ${BACKUPDIR}/httpd/conf/httpd.conf
+    sed -i "s|Listen ${OLD_PORT}|Listen 80|" /etc/httpd/conf/httpd.conf
 fi
-sed -i "s|Listen 80|Listen ${PORT}|" ${BACKUPDIR}/httpd/conf/httpd.conf
+sed -i "s|Listen 80|Listen ${PORT}|" /etc/httpd/conf/httpd.conf
 
 # Drop the current host name into a config file so Apache doesn't complain about it at startup
 echo "ServerName ${CACTI_FQDN}" > /etc/httpd/conf.d/fqdn.conf

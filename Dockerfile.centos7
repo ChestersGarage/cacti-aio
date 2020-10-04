@@ -1,6 +1,9 @@
+# Always specify versions!
+# Specifying "latest" results in really unpredictable behavior
+# if things sit too long between builds.
 FROM centos:7
-
-ENV CACTI_VERSION latest
+ENV CACTI_VERSION 1.2.6
+# MariaDB 10.4 (see files/mariadb.repo)
 
 # Install all the things we need to do everything.
 ADD files/mariadb.repo /etc/yum.repos.d/
