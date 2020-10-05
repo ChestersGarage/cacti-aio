@@ -323,6 +323,7 @@ chown -R mysql:mysql /var/lib/mysql
 mkdir -p /var/log/cacti
 touch /var/log/cacti/cacti.log /var/log/cacti/cacti_stderr.log
 chown -R apache:apache /var/log/cacti/
+chmod go+rw /var/log/cacti/cacti*
 
 export MIBDIRS=/usr/share/snmp/mibs:/usr/share/snmp/mibs/iana:/usr/share/snmp/mibs/ietf:/usr/local/share/snmp/mibs
 
