@@ -108,6 +108,17 @@ innodb_large_prefix = 1
 EOF
 fi
 
+mkdir -p /root/.mysql
+cat > /root/.mysql/mysql.cnf <<EOF
+[mysqladmin]
+user=root
+password=${MYSQL}
+[mysql]
+user=root
+password=${MYSQL}
+EOF
+chmod -R 0700 /root/.mysql/mysql.cnf
+
 # Check for the presence of a cacti database folder in the mysql data
 # If it's missing, initialize MySQL/MariaDB.
 # Everything else will be moved to bak.
@@ -133,7 +144,7 @@ then
     mysqladmin -uroot password ${MYSQL}
     # Clean up for production
     echo "Removing unwanted accounts from MariaDB."
-    mysql --user=root -p${MYSQL} <<EOF
+    mysql --defaults-extra-file=/root/.mysql/mysql.cnf <<EOF
 DELETE FROM mysql.user WHERE User='';
 DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 DROP DATABASE IF EXISTS test;
@@ -142,23 +153,23 @@ FLUSH PRIVILEGES;
 EOF
     # Ingest timezone data from the O/S
     echo "Setting up timezone info."
-    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -p${MYSQL} mysql
+    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql --defaults-extra-file=/root/.mysql/mysql.cnf mysql
     # Set the current timezone for MySQL
     echo 'default-time-zone = '$TZ >> /etc/my.cnf.d/mariadb-server.cnf
     # Refresh the running MySQL server
-    mysqladmin -uroot -p${MYSQL} shutdown
+    mysqladmin --defaults-extra-file=/root/.mysql/mysql.cnf shutdown
     nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
     sleep 3
     # Create the cacti database
     echo "Creating the cacti database."
-    mysqladmin -uroot -p${MYSQL} create cacti
+    mysqladmin --defaults-extra-file=/root/.mysql/mysql.cnf create cacti
     # Ingest the cacti initialization script
-    mysql -uroot -p${MYSQL} cacti < /usr/share/webapps/cacti/cacti.sql
+    mysql --defaults-extra-file=/root/.mysql/mysql.cnf cacti < /usr/share/webapps/cacti/cacti.sql
     # Add one-minute polling RRAs
     # https://www.tolaris.com/2013/07/09/cacti-and-1-minute-polling/comment-page-1/
     # Add the default admin user's startup preferences
     echo "Modifying cacti DB to handle one-minute polling."
-    mysql -uroot -p${MYSQL} cacti <<EOF
+    mysql --defaults-extra-file=/root/.mysql/mysql.cnf cacti <<EOF
 INSERT INTO data_source_profiles VALUES (3,'48f01ca42a88cfc169d019312cb6f70f','One-Minute Polling',60,120,0.5,'');
 INSERT INTO data_source_profiles_cf VALUES (3,1),(3,2),(3,3),(3,4);
 INSERT INTO data_source_profiles_rra VALUES (9,3,'Hourly (1-Minute Average @ 1-Minute Interval)',1,10080,3600);
@@ -241,11 +252,12 @@ fi
 # Clear out old user tables entries
 echo "Setting up MariaDB users and permissions."
 mysql -uroot -p${MYSQL} <<EOF
-DROP USER 'cactiuser'@'${CACTI_FQDN}';
-DROP USER 'backups'@'${CACTI_FQDN}';
 DROP USER 'cactiuser'@'localhost';
 DROP USER 'backups'@'localhost';
+DELETE FROM mysql.user WHERE User='cactiuser' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DELETE FROM mysql.user WHERE User='backups' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 FLUSH PRIVILEGES;
+
 CREATE USER 'cactiuser'@'${CACTI_FQDN}' IDENTIFIED BY '${CACTI}';
 CREATE USER 'backups'@'${CACTI_FQDN}' IDENTIFIED BY '${BACKUPS}';
 CREATE USER 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
@@ -253,11 +265,13 @@ CREATE USER 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';
 
 GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'${CACTI_FQDN}' IDENTIFIED BY '${BACKUPS}';
 GRANT LOCK TABLES, SELECT ON *.* TO 'backups'@'localhost' IDENTIFIED BY '${BACKUPS}';
+
 GRANT ALL ON cacti.* TO 'cactiuser'@'${CACTI_FQDN}' IDENTIFIED BY '${CACTI}';
 GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
 
 GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CACTI_FQDN}' IDENTIFIED BY '${CACTI}';
 GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
+
 UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';
 UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';
 UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';
