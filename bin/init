@@ -272,11 +272,13 @@ GRANT ALL ON cacti.* TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
 GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'${CACTI_FQDN}' IDENTIFIED BY '${CACTI}';
 GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost' IDENTIFIED BY '${CACTI}';
 
-UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';
-UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';
-UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';
 FLUSH PRIVILEGES;
 EOF
+
+# Need to figure out the new way to do this.
+#UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'cactiuser';
+#UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'backups';
+#UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE User = 'root';
 
 # Shut down MySQL before transitioning to service startup.
 mysqladmin shutdown
