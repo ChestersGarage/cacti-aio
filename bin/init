@@ -303,8 +303,8 @@ DB_Port 3306
 EOF
 
 # Set the default backup schedule, if not provided
-echo "Setting the backup schedule in root's crontab. \"${CRON_PATTERN} /backup > /dev/null 2>&1\""
 CRON_PATTERN=${CRON_PATTERN:-2 * * * *}
+echo "Setting the backup schedule in root's crontab. \"${CRON_PATTERN} /backup > /dev/null 2>&1\""
 echo "${CRON_PATTERN} /backup > /dev/null 2>&1" >> /var/spool/cron/crontabs/root
 
 # If you use /bin/sh, make sure you source this file after logging in.
@@ -321,7 +321,7 @@ chown -R mysql:mysql /var/lib/mysql
 
 # Last few location setups, pulled out of the Dockerfile, so that logs can be mounted externally
 mkdir -p /var/log/cacti
-touch /var/log/cacti/cacti.log
+touch /var/log/cacti/cacti.log /var/log/cacti/cacti_stderr.log
 chown -R apache:apache /var/log/cacti/
 
 export MIBDIRS=/usr/share/snmp/mibs:/usr/share/snmp/mibs/iana:/usr/share/snmp/mibs/ietf:/usr/local/share/snmp/mibs
