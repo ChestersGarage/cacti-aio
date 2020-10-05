@@ -252,8 +252,8 @@ fi
 # Clear out old user tables entries
 echo "Setting up MariaDB users and permissions."
 mysql <<EOF
-DROP USER 'cactiuser'@'localhost';
-DROP USER 'backups'@'localhost';
+DROP USER IF EXISTS 'cactiuser'@'localhost';
+DROP USER IF EXISTS 'backups'@'localhost';
 DELETE FROM mysql.user WHERE User='cactiuser' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 DELETE FROM mysql.user WHERE User='backups' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 FLUSH PRIVILEGES;
