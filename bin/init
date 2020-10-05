@@ -109,7 +109,7 @@ EOF
 fi
 
 mkdir -p /root/.mysql
-cat > /root/.mysql/mysql.cnf <<EOF
+cat > /root/.my.cnf <<EOF
 [mysqladmin]
 user=root
 password=${MYSQL}
@@ -144,7 +144,7 @@ then
     mysqladmin -uroot password ${MYSQL}
     # Clean up for production
     echo "Removing unwanted accounts from MariaDB."
-    mysql --defaults-extra-file=/root/.mysql/mysql.cnf <<EOF
+    mysql <<EOF
 DELETE FROM mysql.user WHERE User='';
 DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 DROP DATABASE IF EXISTS test;
@@ -153,23 +153,23 @@ FLUSH PRIVILEGES;
 EOF
     # Ingest timezone data from the O/S
     echo "Setting up timezone info."
-    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql --defaults-extra-file=/root/.mysql/mysql.cnf mysql
+    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql mysql
     # Set the current timezone for MySQL
     echo 'default-time-zone = '$TZ >> /etc/my.cnf.d/mariadb-server.cnf
     # Refresh the running MySQL server
-    mysqladmin --defaults-extra-file=/root/.mysql/mysql.cnf shutdown
+    mysqladmin shutdown
     nohup /usr/bin/mysqld_safe --datadir="/var/lib/mysql" &
     sleep 3
     # Create the cacti database
     echo "Creating the cacti database."
-    mysqladmin --defaults-extra-file=/root/.mysql/mysql.cnf create cacti
+    mysqladmin create cacti
     # Ingest the cacti initialization script
-    mysql --defaults-extra-file=/root/.mysql/mysql.cnf cacti < /usr/share/webapps/cacti/cacti.sql
+    mysql cacti < /usr/share/webapps/cacti/cacti.sql
     # Add one-minute polling RRAs
     # https://www.tolaris.com/2013/07/09/cacti-and-1-minute-polling/comment-page-1/
     # Add the default admin user's startup preferences
     echo "Modifying cacti DB to handle one-minute polling."
-    mysql --defaults-extra-file=/root/.mysql/mysql.cnf cacti <<EOF
+    mysql cacti <<EOF
 INSERT INTO data_source_profiles VALUES (3,'48f01ca42a88cfc169d019312cb6f70f','One-Minute Polling',60,120,0.5,'');
 INSERT INTO data_source_profiles_cf VALUES (3,1),(3,2),(3,3),(3,4);
 INSERT INTO data_source_profiles_rra VALUES (9,3,'Hourly (1-Minute Average @ 1-Minute Interval)',1,10080,3600);
@@ -251,7 +251,7 @@ fi
 # The success of all this depends on the correct MySQL root password being provided.
 # Clear out old user tables entries
 echo "Setting up MariaDB users and permissions."
-mysql -uroot -p${MYSQL} <<EOF
+mysql <<EOF
 DROP USER 'cactiuser'@'localhost';
 DROP USER 'backups'@'localhost';
 DELETE FROM mysql.user WHERE User='cactiuser' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
@@ -279,7 +279,7 @@ FLUSH PRIVILEGES;
 EOF
 
 # Shut down MySQL before transitioning to service startup.
-mysqladmin -uroot -p${MYSQL} shutdown
+mysqladmin shutdown
 
 # Set the DB info for cacti.
 # Many characters can disrupt this.
