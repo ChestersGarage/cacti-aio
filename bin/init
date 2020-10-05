@@ -168,66 +168,66 @@ EOF
     # Add one-minute polling RRAs
     # https://www.tolaris.com/2013/07/09/cacti-and-1-minute-polling/comment-page-1/
     # Add the default admin user's startup preferences
-    echo "Modifying cacti DB to handle one-minute polling."
-    mysql cacti <<EOF
-INSERT INTO data_source_profiles VALUES (3,'48f01ca42a88cfc169d019312cb6f70f','One-Minute Polling',60,120,0.5,'');
-INSERT INTO data_source_profiles_cf VALUES (3,1),(3,2),(3,3),(3,4);
-INSERT INTO data_source_profiles_rra VALUES (9,3,'Hourly (1-Minute Average @ 1-Minute Interval)',1,10080,3600);
-INSERT INTO data_source_profiles_rra VALUES (10,3,'Daily (5-Minute Average @ 1-Minute Interval)',5,8640,86400);
-INSERT INTO data_source_profiles_rra VALUES (11,3,'Weekly (30-Minute Average @ 1-Minute Interval)',30,4320,604800);
-INSERT INTO data_source_profiles_rra VALUES (12,3,'Monthly (2-Hour Average @ 1-Minute Interval)',120,2160,2618784);
-INSERT INTO data_source_profiles_rra VALUES (13,3,'Yearly (1-Day Average @ 1-Minute Interval)',1440,1461,31536000);
-INSERT INTO settings_user VALUES (1,'allow_graph_dates_in_future','on'),(1,'axis_font',''),(1,'axis_size','8'),(1,'custom_fonts',''),
-(1,'day_shift_end','18:00'),(1,'day_shift_start','07:00'),(1,'default_date_format','3'),(1,'default_datechar','1'),(1,'default_height','100'),
-(1,'default_rra_id','9'),(1,'default_timeshift','7'),(1,'default_timespan','1'),(1,'default_tree_id','1'),(1,'default_view_mode','1'),
-(1,'default_width','300'),(1,'expand_hosts',''),(1,'first_weekdayid','1'),(1,'graph_template_id','0'),(1,'hide_disabled','on'),
-(1,'legend_font',''),(1,'legend_size','10'),(1,'num_columns','3'),(1,'num_columns_tree','3'),(1,'page_refresh','300'),
-(1,'preview_graphs_per_page','24'),(1,'selected_theme','modern'),(1,'show_graph_title',''),(1,'thumbnail_section_preview',''),
-(1,'thumbnail_section_tree_2','on'),(1,'title_font',''),(1,'title_size','12'),(1,'treeview_graphs_per_page','24'),(1,'unit_font',''),
-(1,'unit_size','8'),(1,'user_language','en-US');
-EOF
+#     echo "Modifying cacti DB to handle one-minute polling."
+#     mysql cacti <<EOF
+# INSERT INTO data_source_profiles VALUES (3,'48f01ca42a88cfc169d019312cb6f70f','One-Minute Polling',60,120,0.5,'');
+# INSERT INTO data_source_profiles_cf VALUES (3,1),(3,2),(3,3),(3,4);
+# INSERT INTO data_source_profiles_rra VALUES (9,3,'Hourly (1-Minute Average @ 1-Minute Interval)',1,10080,3600);
+# INSERT INTO data_source_profiles_rra VALUES (10,3,'Daily (5-Minute Average @ 1-Minute Interval)',5,8640,86400);
+# INSERT INTO data_source_profiles_rra VALUES (11,3,'Weekly (30-Minute Average @ 1-Minute Interval)',30,4320,604800);
+# INSERT INTO data_source_profiles_rra VALUES (12,3,'Monthly (2-Hour Average @ 1-Minute Interval)',120,2160,2618784);
+# INSERT INTO data_source_profiles_rra VALUES (13,3,'Yearly (1-Day Average @ 1-Minute Interval)',1440,1461,31536000);
+# INSERT INTO settings_user VALUES (1,'allow_graph_dates_in_future','on'),(1,'axis_font',''),(1,'axis_size','8'),(1,'custom_fonts',''),
+# (1,'day_shift_end','18:00'),(1,'day_shift_start','07:00'),(1,'default_date_format','3'),(1,'default_datechar','1'),(1,'default_height','100'),
+# (1,'default_rra_id','9'),(1,'default_timeshift','7'),(1,'default_timespan','1'),(1,'default_tree_id','1'),(1,'default_view_mode','1'),
+# (1,'default_width','300'),(1,'expand_hosts',''),(1,'first_weekdayid','1'),(1,'graph_template_id','0'),(1,'hide_disabled','on'),
+# (1,'legend_font',''),(1,'legend_size','10'),(1,'num_columns','3'),(1,'num_columns_tree','3'),(1,'page_refresh','300'),
+# (1,'preview_graphs_per_page','24'),(1,'selected_theme','modern'),(1,'show_graph_title',''),(1,'thumbnail_section_preview',''),
+# (1,'thumbnail_section_tree_2','on'),(1,'title_font',''),(1,'title_size','12'),(1,'treeview_graphs_per_page','24'),(1,'unit_font',''),
+# (1,'unit_size','8'),(1,'user_language','en-US');
+# EOF
 
     # Drop some customizations into the startup wizard
     # Ingest our custom templates!
     # Set poller and cron intervals to 60 seconds
     # Set poller to spine
-    echo "Modifying cacti installer to import custom templates."
-    sed -i "s|\/\/ Add the correct device type|\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Host-MIB-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Host-MIB-Logged-in-Users.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Host-MIB-Processes.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Context-Switches.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-CPU-Utilization.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Interrupts.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Load-Average.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Memory-Usage.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IOs.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec-95th.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans')\;\n\t\t\
-db_execute(\"INSERT INTO settings VALUES ('poller_interval',60)\")\;\n\t\t\
-db_execute(\"INSERT INTO settings VALUES ('cron_interval',60)\")\;\n\t\t\
-db_execute(\"INSERT INTO settings VALUES ('poller_type',2)\")\;\n\t\t\
-db_execute(\"INSERT INTO settings VALUES ('path_spine_config','/usr/local/spine/etc/spine.conf')\")\;\n\n\t\t\
-\/\/ Add the correct device type|g" /usr/share/cacti/install/index.php
+#     echo "Modifying cacti installer to import custom templates."
+#     sed -i "s|\/\/ Add the correct device type|\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Host-MIB-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Host-MIB-Logged-in-Users.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Host-MIB-Processes.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Context-Switches.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-CPU-Utilization.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Interrupts.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Load-Average.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Memory-Usage.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IOs.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec-95th.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# shell_exec('/usr/bin/php /usr/share/cacti/cli/import_template.php --filename=/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+# db_execute(\"INSERT INTO settings VALUES ('poller_interval',60)\")\;\n\t\t\
+# db_execute(\"INSERT INTO settings VALUES ('cron_interval',60)\")\;\n\t\t\
+# db_execute(\"INSERT INTO settings VALUES ('poller_type',2)\")\;\n\t\t\
+# db_execute(\"INSERT INTO settings VALUES ('path_spine_config','/usr/local/spine/etc/spine.conf')\")\;\n\n\t\t\
+# \/\/ Add the correct device type|g" /usr/share/cacti/install/index.php
 
-    # Set the startup wizard template imports to use the one-minute poller profile
-    echo "Modifying cacti installer to use one-minute poller profile."
-    sed -i "s|\['filename'\], 1|\['filename'\], 3|g" /usr/share/webapps/cacti/install/index.php
+    # # Set the startup wizard template imports to use the one-minute poller profile
+    # echo "Modifying cacti installer to use one-minute poller profile."
+    # sed -i "s|\['filename'\], 1|\['filename'\], 3|g" /usr/share/webapps/cacti/install/index.php
 
-    # Set the startup wizard to use the My unRAID Server template instead of the default Local Linux Machine template
-    # Allow setting the community string
-    echo "Modifying cacti installer to use our unRAID host instead of the \"Local Linux Machine\" template."
-    SNMP_COMMUNITY=${SNMP_COMMUNITY:-public}
-    sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '788bb9d0eaf8c99cd581e544641f5808'|g" /usr/share/webapps/cacti/install/index.php
-    sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|g" /usr/share/webapps/cacti/install/index.php
-    sed -i "s|description  = \"Local Linux Machine\"|description  = \"unRAID Server\"|g" /usr/share/webapps/cacti/install/index.php
-    sed -i "s|version      = 0|version      = 2|g" /usr/share/webapps/cacti/install/index.php
-    sed -i "s|avail        = 'none'|avail        = 'snmp'|g" /usr/share/webapps/cacti/install/index.php
+    # # Set the startup wizard to use the My unRAID Server template instead of the default Local Linux Machine template
+    # # Allow setting the community string
+    # echo "Modifying cacti installer to use our unRAID host instead of the \"Local Linux Machine\" template."
+    # SNMP_COMMUNITY=${SNMP_COMMUNITY:-public}
+    # sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '788bb9d0eaf8c99cd581e544641f5808'|g" /usr/share/webapps/cacti/install/index.php
+    # sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|g" /usr/share/webapps/cacti/install/index.php
+    # sed -i "s|description  = \"Local Linux Machine\"|description  = \"unRAID Server\"|g" /usr/share/webapps/cacti/install/index.php
+    # sed -i "s|version      = 0|version      = 2|g" /usr/share/webapps/cacti/install/index.php
+    # sed -i "s|avail        = 'none'|avail        = 'snmp'|g" /usr/share/webapps/cacti/install/index.php
 
     # Set the cacti poller cron job to one minute
     echo "* * * * * php /usr/share/webapps/cacti/poller.php >/dev/null 2>&1" > /etc/crontabs/cacti
