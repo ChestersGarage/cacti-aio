@@ -3,47 +3,124 @@ FROM alpine:3.12
 # These are all pretty much what came with alpine:3.12.
 # Lock versions of critical packages for more predictable container behavior.
 ENV CACTI_VERSION 1.2.12
-ENV CACTIPACKAGE_VERSION 1.2.12-r0
 ENV APACHE_VERSION 2.4.46-r0
 ENV PHP_VERSION 7.3.23-r0
 ENV MARIADB_VERSION 10.4.13-r0
 ENV SNMP_VERSION 5.8-r3
 
 # Install all the things we need, to do everything.
-RUN /sbin/apk --no-cache upgrade && \
-    /sbin/apk --no-cache add \
+RUN /sbin/apk --no-cache add \
     apache2=${APACHE_VERSION} \
-    mariadb=${MARIADB_VERSION} \
-    mariadb-client=${MARIADB_VERSION} \
-    mariadb-dev=${MARIADB_VERSION} \
-    php7=${PHP_VERSION} \
-    php7-ctype=${PHP_VERSION} \
-    php7-gettext=${PHP_VERSION} \
-    php7-apache2=${PHP_VERSION} \
-    php7-dom=${PHP_VERSION} \
-    cacti=${CACTIPACKAGE_VERSION} \
-    cacti-setup=${CACTIPACKAGE_VERSION} \
-    cacti-php7=${CACTIPACKAGE_VERSION} \
-    net-snmp=${SNMP_VERSION} \
-    net-snmp-dev=${SNMP_VERSION} \
-    openrc=0.42.1-r11 \
-    vim \
-    curl \
-    tzdata \
-    wget \
-    patch \
-    gd \
-    automake \
-    libtool \
+    argon2-libs \
     autoconf \
-    make \
+    automake \
+    bash \
+    binutils \
+    brotli-libs \
+    cairo \
+    coreutils \
+    curl \
+    db \
+    distcc \
+    encodings \
+    expat \
+    font-alias \
+    fontconfig \
+    font-sony-misc \
+    freetype \
+    fribidi \
+    g++ \
     gawk \
     gcc \
-    g++ \
-    distcc \
-    binutils \
+    gd \
+    glib \
+    gmp \
+    graphite2 \
+    harfbuzz \
+    help2man \
+    libacl \
+    libattr \
+    libblkid \
+    libbsd \
+    libbz2 \
+    libbz2H1.0.8-r1 \
+    libedit \
+    libffi \
+    libfontenc \
+    libgcc \
+    libice \
+    libintl \
+    libjpeg-turbo \
+    libldap \
+    libmount \
+    libpng \
     libressl-dev \
-    help2man
+    librrd \
+    libsasl \
+    libsm \
+    libstdc++ \
+    libtool \
+    libuuid \
+    libwebp \
+    libx11 \
+    libxau \
+    libxcb \
+    libxdmcp \
+    libxext \
+    libxft \
+    libxml2 \
+    libxpm \
+    libxrender \
+    libxt \
+    make \
+    mariadb=${MARIADB_VERSION} \
+    mariadb-client=${MARIADB_VERSION} \
+    mariadb-client=${MARIADB_VERSION} \
+    mariadb-common=${MARIADB_VERSION} \
+    mariadb-dev=${MARIADB_VERSION} \
+    mkfontscale \
+    ncurses-libs \
+    ncurses-terminfo-base \
+    net-snmp=${SNMP_VERSION} \
+    net-snmp-agent-libs=${SNMP_VERSION} \
+    net-snmp-dev=${SNMP_VERSION} \
+    net-snmp-libs=${SNMP_VERSION} \
+    net-snmp-tools=${SNMP_VERSION} \
+    openrc=0.42.1-r11 \
+    pango \
+    patch \
+    pcre \
+    pcre2 \
+    perl \
+    php7=${PHP_VERSION} \
+    php7-apache2=${PHP_VERSION} \
+    php7-common=${PHP_VERSION} \
+    php7-ctype=${PHP_VERSION} \
+    php7-dom=${PHP_VERSION} \
+    php7-gd=${PHP_VERSION} \
+    php7-gettext=${PHP_VERSION} \
+    php7-gmp=${PHP_VERSION} \
+    php7-json=${PHP_VERSION} \
+    php7-ldap=${PHP_VERSION} \
+    php7-mbstring=${PHP_VERSION} \
+    php7-mysqlnd=${PHP_VERSION} \
+    php7-openssl=${PHP_VERSION} \
+    php7-pdo_mysql=${PHP_VERSION} \
+    php7-pdo=${PHP_VERSION} \
+    php7-posix=${PHP_VERSION} \
+    php7-session=${PHP_VERSION} \
+    php7-simplexml=${PHP_VERSION} \
+    php7-snmp=${PHP_VERSION} \
+    php7-sockets=${PHP_VERSION} \
+    php7-xml=${PHP_VERSION} \
+    pixman \
+    readline \
+    rrdtool \
+    ttf-dejavu \
+    tzdata \
+    vim \
+    wget \
+    xz-libs
 
 # Move all the default configs into a backup location,
 # from where they _might_ be restored later in the container startup process
@@ -63,30 +140,28 @@ RUN BACKUPDIR="/root/default-configs" && \
     ln -s /usr/share/webapps/cacti /var/www/localhost/htdocs/cacti && \
     mkdir -p /var/backups
 
-# Update Cacti
-# Start off with the in-distro version (installed by apk above), in order to set up dependencies and stuff.
-# Then download and install the ${CACTI_VERSION} version of cacti on top of that.
-RUN cd /tmp && \
+# Install Cacti
+RUN cd /opt && \
     wget https://www.cacti.net/downloads/cacti-${CACTI_VERSION}.tar.gz && \
-    PACKAGE_VERSION=$(tar -tf cacti-${CACTI_VERSION}.tar.gz | head -n1 | tr -d /) && \
-    ln -s /usr/share/webapps/cacti /usr/share/webapps/${PACKAGE_VERSION} && \
-    tar -xvf cacti-${CACTI_VERSION}.tar.gz -C /usr/share/webapps && \
-    chown -R cacti:cacti /usr/share/webapps/cacti/ && \
-    chown -R cacti:cacti /var/lib/cacti/ && \
-    chown -R apache:apache /usr/share/webapps/cacti/cache/ && \
-    chown -R apache:apache /usr/share/webapps/cacti/resource/ && \
-    chown -R apache:apache /usr/share/webapps/cacti/scripts/ && \
-    rm -f /tmp/cacti-${CACTI_VERSION}.tar.gz \
-    chown -R apache:apache /var/log/cacti/
+    tar -xvf cacti-${CACTI_VERSION}.tar.gz -C /opt/ && \
+    chown -R cacti:cacti /opt/cacti-${CACTI_VERSION} && \
+    chown -R apache:apache /opt/cacti-${CACTI_VERSION}/cache/ && \
+    chown -R apache:apache /opt/cacti-${CACTI_VERSION}/resource/ && \
+    chown -R apache:apache /opt/cacti-${CACTI_VERSION}/scripts/ && \
+    rm -f /opt/cacti-${CACTI_VERSION}.tar.gz && \
+    mkdir -p /var/log/cacti && \
+    chown -R apache:apache /var/log/cacti && \
+    chmod go+rw /var/log/cacti/* && \
+    rm -rf /var/www/localhost/htdocs && \
+    ln -s /opt/cacti-${CACTI_VERSION} /var/www/localhost/htdocs
 
-# Download and install spine.
+# Install spine.
 # Naturally, spine's version is locked to cacti's version, because versioning.
 # https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
-RUN cd /var/lib/spine/src && \
+RUN cd /opt && \
     wget http://www.cacti.net/downloads/spine/cacti-spine-${CACTI_VERSION}.tar.gz && \
-    PACKAGE_VERSION=$(tar -tf cacti-spine-${CACTI_VERSION}.tar.gz | head -n1 | tr -d /) && \
     tar -zxvf cacti-spine-${CACTI_VERSION}.tar.gz && \
-    cd /var/lib/spine/src/${PACKAGE_VERSION}/ && \
+    cd /opt/cacti-spine-${CACTI_VERSION} && \
     /usr/bin/aclocal && \
     /usr/bin/libtoolize --force && \
     /usr/bin/autoheader && \
@@ -99,7 +174,7 @@ RUN cd /var/lib/spine/src && \
     /usr/bin/make install && \
     /bin/chown root:root /usr/local/spine/bin/spine && \
     /bin/chmod u+s /usr/local/spine/bin/spine && \
-    rm -rf /tmp/cacti-spine-${CACTI_VERSION}.tar.gz /tmp/cacti-spine-${CACTI_VERSION}
+    rm -rf /opt/cacti-spine-${CACTI_VERSION}*
 
 # Install a zillion MIBs
 RUN mkdir -p /usr/share/snmp/mibs
