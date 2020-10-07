@@ -234,10 +234,10 @@ INSERT INTO settings_user VALUES (1,'allow_graph_dates_in_future','on'),(1,'axis
 (1,'preview_graphs_per_page','24'),(1,'selected_theme','modern'),(1,'show_graph_title',''),(1,'thumbnail_section_preview',''),
 (1,'thumbnail_section_tree_2','on'),(1,'title_font',''),(1,'title_size','12'),(1,'treeview_graphs_per_page','24'),(1,'unit_font',''),
 (1,'unit_size','8'),(1,'user_language','en-US');
-INSERT INTO settings VALUES ('poller_interval',60);
-INSERT INTO settings VALUES ('cron_interval',60);
-INSERT INTO settings VALUES ('poller_type',2);
-INSERT INTO settings VALUES ('path_spine_config','/usr/local/spine/etc/spine.conf');
+INSERT INTO settings VALUES ('poller_interval', 60);
+INSERT INTO settings VALUES ('cron_interval', 60);
+INSERT INTO settings VALUES ('poller_type', 2);
+INSERT INTO settings VALUES ('path_spine_config', '/usr/local/spine/etc/spine.conf');
 EOF
 
     user_perms
@@ -257,7 +257,9 @@ EOF
     # # Allow setting the community string
     # echo "Modifying cacti installer to use our unRAID host instead of the \"Local Linux Machine\" template."
     SNMP_COMMUNITY=${SNMP_COMMUNITY:-public}
-    sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '788bb9d0eaf8c99cd581e544641f5808'|" /opt/cacti/lib/installer.php
+    sed -i "s|\$hash = '2d3e47f416738c2d22c87c40218cc55e';|\
+\/\/ Custom first host by ChestersGarage\n\t\t\t\
+\$hash = '788bb9d0eaf8c99cd581e544641f5808';|" /opt/cacti/lib/installer.php
     sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|" /opt/cacti/lib/installer.php
     sed -i "s|community    = 'public'|community    = '${SNMP_COMMUNITY}'|" /opt/cacti/lib/installer.php
     sed -i "s|description  = 'Local Linux Machine'|description  = 'unRAID Server'|" /opt/cacti/lib/installer.php
@@ -270,7 +272,7 @@ EOF
     # Set poller to spine
     echo "Importing custom templates."
     sed -i "s|\$this->setProgress(Installer::PROGRESS_TEMPLATES_END)|\
-\/\/ Custom additions from ChestersGarage\n\t\t\
+\/\/ Custom template imports by ChestersGarage\n\t\t\
 shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3')\;\n\t\t\
 shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
 shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Logged-in-Users.xml --profile-id=3 --remove-orphans')\;\n\t\t\
@@ -288,14 +290,6 @@ shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Tra
 shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec.xml --profile-id=3 --remove-orphans')\;\n\t\t\
 shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans')\;\n\n\t\t\
 \$this->setProgress(Installer::PROGRESS_TEMPLATES_END)|" /opt/cacti/lib/installer.php
-
-    sed -i "s|db_execute('ALTER TABLE poller_output_boost ENGINE=InnoDB');|\
-db_execute('ALTER TABLE poller_output_boost ENGINE=InnoDB');\n\n\t\t\t\
-\/\/ Custom additions from ChestersGarage\n\t\t\t\
-db_execute(\"UPDATE settings SET value = 60 WHERE name = 'poller_interval'\")\;\n\t\t\t\
-db_execute(\"UPDATE settings SET value = 60 WHERE name = 'cron_interval'\")\;\n\t\t\t\
-\/\/db_execute(\"UPDATE settings SET value = 2 WHERE name = 'poller_type'\")\;\n\t\t\t\
-\/\/db_execute(\"UPDATE settings SET value = '/usr/local/spine/etc/spine.conf' WHERE name = 'path_spine_config'\")\;\n|" /opt/cacti/lib/installer.php
 
     # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Available-Disk-Space.xml --profile-id=3 --remove-orphans
     # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Logged-in-Users.xml --profile-id=3 --remove-orphans
