@@ -89,21 +89,29 @@ then
     # Then set our config
     cat > /etc/my.cnf.d/mariadb-server.cnf <<EOF
 [mariadb]
-collation_server = utf8mb4_unicode_ci
-character_set_server = utf8mb4
+collation_server = utf8_general_ci
+character_set_server = utf8
+character_set_client = utf8
+max_connections = 150
 max_heap_table_size = 1024M
+table_cache = 200
 max_allowed_packet = 16M
 tmp_table_size = 1024M
 join_buffer_size = 2048M
+innodb_file_per_table = ON
 innodb_buffer_pool_size = 12288M
 innodb_buffer_pool_instances = 64
-innodb_doublewrite = ON
-innodb_flush_log_at_timeout = 10
+innodb_additional_mem_pool_size = 80M
+innodb_doublewrite = OFF
+innodb_lock_wait_timeout = 50
+innodb_flush_log_at_timeout = 4
+innodb_flush_log_at_trx_commit = 2
 innodb_io_capacity = 5000
 innodb_io_capacity_max = 10000
-innodb_read_io_threads = 32
-innodb_write_io_threads = 16
+innodb_read_io_threads = 34
+innodb_write_io_threads = 17
 innodb_file_format = Barracuda
+innodb_file_io_threads = 16
 innodb_large_prefix = 1
 net_read_timeout = 120
 net_write_timeout = 120
@@ -254,7 +262,6 @@ EOF
     # Set poller and cron intervals to 60 seconds
     # Set poller to spine
     echo "Importing custom templates."
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3
     /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Available-Disk-Space.xml --profile-id=3 --remove-orphans
     /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Logged-in-Users.xml --profile-id=3 --remove-orphans
     /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Processes.xml --profile-id=3 --remove-orphans
@@ -270,6 +277,7 @@ EOF
     /usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec-95th.xml --profile-id=3 --remove-orphans
     /usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec.xml --profile-id=3 --remove-orphans
     /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans
+    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3
 
 else
     # Set the DB info for cacti.

@@ -1,15 +1,14 @@
 FROM alpine:3.12
 
-# These are all pretty much what came with alpine:3.12.
 # Lock versions of critical packages for more predictable container behavior.
-ENV CACTI_VERSION 1.2.12
+ENV CACTI_VERSION 1.2.14
 ENV APACHE_VERSION 2.4.46-r0
 ENV PHP_VERSION 7.3.23-r0
 ENV MARIADB_VERSION 10.4.13-r0
 ENV SNMP_VERSION 5.8-r3
 
 # Install all the things we need, to do everything.
-RUN /sbin/apk --no-cache add \
+RUN /sbin/apk --quiet --no-cache add \
     apache2=${APACHE_VERSION} \
     argon2-libs \
     autoconf \
@@ -24,6 +23,7 @@ RUN /sbin/apk --no-cache add \
     distcc \
     encodings \
     expat \
+    file \
     font-alias \
     fontconfig \
     font-sony-misc \
@@ -71,6 +71,7 @@ RUN /sbin/apk --no-cache add \
     libxpm \
     libxrender \
     libxt \
+    m4 \
     make \
     mariadb=${MARIADB_VERSION} \
     mariadb-client=${MARIADB_VERSION} \
@@ -85,6 +86,8 @@ RUN /sbin/apk --no-cache add \
     net-snmp-dev=${SNMP_VERSION} \
     net-snmp-libs=${SNMP_VERSION} \
     net-snmp-tools=${SNMP_VERSION} \
+    net-snmp-perl=${SNMP_VERSION} \
+    net-snmp-openrc=${SNMP_VERSION} \
     openrc=0.42.1-r11 \
     pango \
     patch \
@@ -126,19 +129,14 @@ RUN /sbin/apk --no-cache add \
 # from where they _might_ be restored later in the container startup process
 # Init script checks for existing resources and copies in defaults if none are found or recognized
 RUN BACKUPDIR="/root/default-configs" && \
-    mkdir -p ${BACKUPDIR}/mysql && \
+    mkdir -p ${BACKUPDIR}/mysql ${BACKUPDIR}/apache ${BACKUPDIR}/php7 /run/apache2 /run/openrc /var/backups && \
     mv /etc/mysql /etc/my.cnf /etc/my.cnf.d ${BACKUPDIR}/mysql/ && \
-    mkdir -p ${BACKUPDIR}/apache && \
     mv /etc/apache2/* ${BACKUPDIR}/apache/ && \
-    mkdir ${BACKUPDIR}/php7 && \
     mv /etc/php7/* ${BACKUPDIR}/php7/ && \
-    mkdir -p /run/apache2 && \
-    mkdir -p /run/openrc && \
-    touch /run/openrc/softlevel && \
-    mkdir -p /var/backups
+    touch /run/openrc/softlevel
 
 # Install Cacti
-RUN wget https://www.cacti.net/downloads/cacti-${CACTI_VERSION}.tar.gz -O /opt/cacti-${CACTI_VERSION}.tar.gz && \
+RUN wget -q https://www.cacti.net/downloads/cacti-${CACTI_VERSION}.tar.gz -O /opt/cacti-${CACTI_VERSION}.tar.gz && \
     tar -xvf /opt/cacti-${CACTI_VERSION}.tar.gz -C /opt/ && \
     rm -f /opt/cacti-${CACTI_VERSION}.tar.gz && \
     mv /opt/cacti-${CACTI_VERSION} /opt/cacti && \
@@ -149,7 +147,7 @@ ADD cacti-templates/* /opt/cacti/install/templates/
 # Install spine.
 # Naturally, spine's version is locked to cacti's version, because versioning.
 # https://www.cacti.net/downloads/docs/html/unix_configure_spine.html
-RUN wget http://www.cacti.net/downloads/spine/cacti-spine-${CACTI_VERSION}.tar.gz -O /opt/cacti-spine-${CACTI_VERSION}.tar.gz && \
+RUN wget -q http://www.cacti.net/downloads/spine/cacti-spine-${CACTI_VERSION}.tar.gz -O /opt/cacti-spine-${CACTI_VERSION}.tar.gz && \
     tar -zxvf /opt/cacti-spine-${CACTI_VERSION}.tar.gz -C /opt/ && \
     cd /opt/cacti-spine-${CACTI_VERSION} && \
     /usr/bin/aclocal && \
