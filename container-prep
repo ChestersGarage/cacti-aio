@@ -195,6 +195,8 @@ sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /usr/
 
 # This gets reset to root:root for some reason, so I set it back.
 # Probably caused by host permissions. (to-do)
+touch /var/log/cacti/cacti_stderr.log
+chown apache:apache /var/log/cacti/cacti_stderr.log
 chown -R cacti:cacti /var/lib/cacti/rra
 chown -R mysql:mysql /var/lib/mysql
 
