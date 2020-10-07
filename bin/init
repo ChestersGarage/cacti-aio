@@ -88,30 +88,39 @@ then
     cp -rpf ${BACKUPDIR}/mysql/my* /etc/
     # Then set our config
     cat > /etc/my.cnf.d/mariadb-server.cnf <<EOF
+[client]
+default-character-set=utf8mb4
+
+[mysql]
+default-character-set=utf8mb4
+
+[mysqld]
+collation-server = utf8mb4_unicode_ci
+init-connect='SET NAMES utf8mb4'
+character-set-server = utf8mb4
+
 [mariadb]
-collation_server = utf8_general_ci
-character_set_server = utf8
-character_set_client = utf8
-max_connections = 150
-max_heap_table_size = 1024M
+collation_server = utf8mb4_unicode_ci
+character_set_server = utf8mb4
+character_set_client_handshake = utf8mb4
+max_connections = 100
+max_heap_table_size = 768M
 table_cache = 200
 max_allowed_packet = 16M
 tmp_table_size = 1024M
-join_buffer_size = 2048M
+join_buffer_size = 1536M
 innodb_file_per_table = ON
 innodb_buffer_pool_size = 12288M
 innodb_buffer_pool_instances = 64
-innodb_additional_mem_pool_size = 80M
 innodb_doublewrite = OFF
 innodb_lock_wait_timeout = 50
-innodb_flush_log_at_timeout = 4
+innodb_flush_log_at_timeout = 3
 innodb_flush_log_at_trx_commit = 2
 innodb_io_capacity = 5000
 innodb_io_capacity_max = 10000
 innodb_read_io_threads = 34
 innodb_write_io_threads = 17
 innodb_file_format = Barracuda
-innodb_file_io_threads = 16
 innodb_large_prefix = 1
 net_read_timeout = 120
 net_write_timeout = 120
@@ -247,44 +256,70 @@ EOF
     # # Set the startup wizard to use the My unRAID Server template instead of the default Local Linux Machine template
     # # Allow setting the community string
     # echo "Modifying cacti installer to use our unRAID host instead of the \"Local Linux Machine\" template."
-    # SNMP_COMMUNITY=${SNMP_COMMUNITY:-public}
-    sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '788bb9d0eaf8c99cd581e544641f5808'|g" /opt/cacti/lib/installer.php
-    sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|g" /opt/cacti/lib/installer.php
-    sed -i "s|description  = 'Local Linux Machine'|description  = 'unRAID Server'|g" /opt/cacti/lib/installer.php
-    sed -i "s|version      = 0|version      = 2|g" /opt/cacti/lib/installer.php
-    sed -i "s|avail        = 'none'|avail        = 'snmp'|g" /opt/cacti/lib/installer.php
-
-    # Set the cacti poller cron job to one minute
-    echo "* * * * * php /opt/cacti/poller.php >/dev/null 2>&1" > /etc/crontabs/apache
+    SNMP_COMMUNITY=${SNMP_COMMUNITY:-public}
+    sed -i "s|hash = '2d3e47f416738c2d22c87c40218cc55e'|hash = '788bb9d0eaf8c99cd581e544641f5808'|" /opt/cacti/lib/installer.php
+    sed -i "s|ip           = 'localhost'|ip           = '${UNRAID_HOST}'|" /opt/cacti/lib/installer.php
+    sed -i "s|community    = 'public'|community    = '${SNMP_COMMUNITY}'|" /opt/cacti/lib/installer.php
+    sed -i "s|description  = 'Local Linux Machine'|description  = 'unRAID Server'|" /opt/cacti/lib/installer.php
+    sed -i "s|version      = 0|version      = 2|" /opt/cacti/lib/installer.php
+    sed -i "s|avail        = 'none'|avail        = 'snmp'|" /opt/cacti/lib/installer.php
 
     # Drop some customizations into the startup wizard
     # Ingest our custom templates!
     # Set poller and cron intervals to 60 seconds
     # Set poller to spine
     echo "Importing custom templates."
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Available-Disk-Space.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Logged-in-Users.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Processes.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Available-Disk-Space.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Context-Switches.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-CPU-Utilization.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Interrupts.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Load-Average.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Memory-Usage.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IOs.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec-95th.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans
-    /usr/bin/php /opt/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3
+    sed -i "s|\$this->setProgress(Installer::PROGRESS_TEMPLATES_END)|\
+\/\/ Custom additions from ChestersGarage\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Logged-in-Users.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Processes.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Available-Disk-Space.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Context-Switches.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-CPU-Utilization.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Interrupts.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Load-Average.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Memory-Usage.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IOs.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec-95th.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec.xml --profile-id=3 --remove-orphans')\;\n\t\t\
+shell_exec('/usr/bin/php /opt/cacti/cli/import_template.php --filename=/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans')\;\n\n\t\t\
+\$this->setProgress(Installer::PROGRESS_TEMPLATES_END)|" /opt/cacti/lib/installer.php
+
+    sed -i "s|db_execute('ALTER TABLE poller_output_boost ENGINE=InnoDB');|\
+db_execute('ALTER TABLE poller_output_boost ENGINE=InnoDB');\n\n\t\t\t\
+\/\/ Custom additions from ChestersGarage\n\t\t\t\
+db_execute(\"UPDATE settings SET value = 60 WHERE name = 'poller_interval'\")\;\n\t\t\t\
+db_execute(\"UPDATE settings SET value = 60 WHERE name = 'cron_interval'\")\;\n\t\t\t\
+\/\/db_execute(\"UPDATE settings SET value = 2 WHERE name = 'poller_type'\")\;\n\t\t\t\
+\/\/db_execute(\"UPDATE settings SET value = '/usr/local/spine/etc/spine.conf' WHERE name = 'path_spine_config'\")\;\n|" /opt/cacti/lib/installer.php
+
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Available-Disk-Space.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Logged-in-Users.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Host-MIB-Processes.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Available-Disk-Space.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Context-Switches.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-CPU-Utilization.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Interrupts.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Load-Average.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Memory-Usage.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IO-Bytes.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Net-SNMP-Total-SCSI-Disk-IOs.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec-95th.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/SNMP-Traffic-BitSec.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/Unix-Ping-Latency.xml --profile-id=3 --remove-orphans
+    # /usr/bin/php /opt/cacti/cli/import_template.php --filename=/unRAID-Server.xml --profile-id=3
 
 else
     # Set the DB info for cacti.
     # Many characters can disrupt this.
     # Avoid & and ! and possibly others in passwords.
     echo "Setting cacti DB password in cacti."
-    #sed -i "s/database_hostname = 'localhost'/database_hostname = '${CACTI_FQDN}'/" /usr/share/webapps/cacti/include/config.php
+    #sed -i "s/database_hostname = 'localhost'/database_hostname = '${CACTI_FQDN}'/" /opt/webapps/cacti/include/config.php
     sed -i "s/database_password = 'cactiuser'/database_password = '${CACTI}'/" /opt/cacti/include/config.php
 
     # With exising data, just start the database so we can set up non-root user access.
@@ -369,6 +404,9 @@ crond -L /var/log/cron
 # Start Apache
 echo "Starting Apache."
 /usr/sbin/httpd -k start -f /etc/apache2/httpd.conf
+
+# Set the cacti poller cron job to one minute
+echo "* * * * * php /opt/cacti/poller.php >/dev/null 2>&1" > /etc/crontabs/apache
 
 # Hold open the session
 tail -F /var/log/apache2/error.log /var/log/apache2/access.log /var/log/cron /var/log/cacti/cacti.log /var/log/cacti/cacti_stderr.log /var/lib/mysql/${CACTI_FQDN}.err

@@ -71,7 +71,6 @@ RUN /sbin/apk --quiet --no-cache add \
     libxpm \
     libxrender \
     libxt \
-    m4 \
     make \
     mariadb=${MARIADB_VERSION} \
     mariadb-client=${MARIADB_VERSION} \
@@ -161,8 +160,8 @@ RUN wget -q http://www.cacti.net/downloads/spine/cacti-spine-${CACTI_VERSION}.ta
     /usr/bin/make && \
     /usr/bin/make install && \
     chown root:root /usr/local/spine/bin/spine && \
-    chmod u+s /usr/local/spine/bin/spine
-#    rm -rf /opt/cacti-spine-${CACTI_VERSION}*
+    chmod u+s /usr/local/spine/bin/spine && \
+    rm -rf /opt/cacti-spine-${CACTI_VERSION}*
 
 # Install a zillion MIBs
 RUN mkdir -p /usr/share/snmp/mibs
